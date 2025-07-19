@@ -28,7 +28,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 cursor-pointer">
             <div className="relative">
               <FiLock className="h-8 w-8 text-teal-400" />
               <div className="absolute inset-0 bg-teal-400/20 rounded-full blur-sm"></div>
@@ -63,7 +63,7 @@ export function Navbar() {
               Login
             </a>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group">
+              <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
                 <span className="relative z-10">Sign Up</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </Button>
@@ -140,7 +140,7 @@ export function Navbar() {
             >
               Login
             </a>
-            <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">
+            <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white cursor-pointer">
               Sign Up
             </Button>
           </div>
