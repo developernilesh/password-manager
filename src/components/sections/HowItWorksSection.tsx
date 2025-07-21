@@ -110,13 +110,13 @@ export function HowItWorksSection() {
         </motion.div>
 
         {/* Steps */}
-        <div className="space-y-32">
+        <div className="space-y-20">
           {steps.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 80 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
               className="relative"
             >
@@ -403,7 +403,7 @@ export function HowItWorksSection() {
               </div>
 
               {/* Connection Line */}
-              {index < steps.length - 1 && (
+              {/* {index < steps.length - 1 && (
                 <motion.div
                   initial={{ scaleY: 0 }}
                   whileInView={{ scaleY: 1 }}
@@ -411,7 +411,7 @@ export function HowItWorksSection() {
                   viewport={{ once: true }}
                   className="absolute left-1/2 transform -translate-x-1/2 mt-16 w-0.5 h-16 bg-gradient-to-b from-teal-500 to-blue-500 origin-top"
                 />
-              )}
+              )} */}
             </motion.div>
           ))}
         </div>
