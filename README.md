@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SecureVault - Password Manager
+
+A modern, secure password management application built with Next.js, TypeScript, and ClerkJS for authentication.
+
+## Features
+
+- 🔐 **Secure Authentication** - Powered by ClerkJS
+- 🎨 **Modern UI** - Beautiful, responsive design with Framer Motion animations
+- 📱 **Mobile Responsive** - Works perfectly on all devices
+- 🚀 **Fast Performance** - Built with Next.js 15 and React 19
+- 🎯 **Smart Routing** - Automatic redirection based on authentication status
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── dashboard/
+│   │   └── page.tsx          # Dashboard route for authenticated users
+│   ├── layout.tsx            # Root layout with ClerkJS provider
+│   └── page.tsx              # Home page with authentication routing
+├── components/
+│   ├── layout/
+│   │   ├── Footer.tsx        # Footer component
+│   │   └── Navbar.tsx        # Navigation bar with auth buttons
+│   ├── pages/
+│   │   ├── Dashboard.tsx     # Dashboard component for authenticated users
+│   │   └── LandingPage.tsx   # Landing page component for unauthenticated users
+│   ├── sections/
+│   │   ├── CTASection.tsx    # Call-to-action section
+│   │   ├── FeaturesSection.tsx
+│   │   ├── HeroSection.tsx
+│   │   ├── HowItWorksSection.tsx
+│   │   ├── PricingSection.tsx
+│   │   └── SecuritySection.tsx
+│   └── ui/
+│       ├── button.tsx        # Reusable button component
+│       └── card.tsx          # Reusable card component
+├── lib/
+│   └── utils.ts              # Utility functions
+└── middleware.ts             # ClerkJS middleware configuration
+```
+
+## Authentication Flow
+
+1. **Unauthenticated Users** (`/`):
+   - See the landing page with all marketing sections
+   - Can sign up or sign in using ClerkJS modals
+   - Navbar shows "Sign In" and "Sign Up" buttons
+
+2. **Authenticated Users** (`/`):
+   - Automatically redirected to `/dashboard`
+   - See the dashboard with password management features
+   - Navbar shows "Dashboard" link and UserButton
+
+3. **Dashboard Route** (`/dashboard`):
+   - Protected route that requires authentication
+   - Unauthenticated users are redirected to home
+   - Shows password management interface
 
 ## Getting Started
 
-First, run the development server:
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Set up ClerkJS:**
+   - Create a ClerkJS account
+   - Add your environment variables to `.env.local`:
+   ```
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
+   CLERK_SECRET_KEY=your_secret_key
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Technologies Used
 
-## Learn More
+- **Next.js 15** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Framer Motion** - Animations
+- **ClerkJS** - Authentication
+- **React Icons** - Icon library
+- **Radix UI** - UI primitives
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Landing Page**: `src/components/pages/LandingPage.tsx`
+- **Dashboard**: `src/components/pages/Dashboard.tsx`
+- **Authentication**: Handled by ClerkJS in `src/app/layout.tsx`
+- **Routing**: `src/app/page.tsx` and `src/app/dashboard/page.tsx`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Folder Structure Improvements
 
-## Deploy on Vercel
+The project has been reorganized with:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **`src/components/pages/`** - Page-level components
+- **`src/components/sections/`** - Landing page sections
+- **`src/components/layout/`** - Layout components
+- **`src/components/ui/`** - Reusable UI components
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This structure provides better separation of concerns and makes the codebase more maintainable.
