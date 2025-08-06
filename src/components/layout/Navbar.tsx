@@ -5,6 +5,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FiLock, FiMenu } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,19 +66,63 @@ export function Navbar() {
             >
               Pricing
             </a>
-            <a href="#login" className="hover:text-teal-400 transition-colors">
-              Login
-            </a>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
-                <span className="relative z-10">Sign Up</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </Button>
-            </motion.div>
+            <div className="flex gap-4 items-center">
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
+                      <span className="relative z-10">Sign In</span>
+                    </Button>
+                  </motion.div>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
+                      <span className="relative z-10">Sign Up</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </Button>
+                  </motion.div>
+                </SignUpButton>
+              </SignedOut>
+              <SignedIn>
+                <a
+                  href="/dashboard"
+                  className="hover:text-teal-400 transition-colors"
+                >
+                  Dashboard
+                </a>
+                <UserButton />
+              </SignedIn>
+            </div>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <div className="flex gap-4 items-center">
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
+                    Sign In
+                  </Button>
+                </SignInButton>
+                <div className="hidden sm:block">
+                  <SignUpButton mode="modal">
+                    <Button className="bg-teal-500 hover:bg-teal-600 text-white cursor-pointer">
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </div>
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+            </div>
             <motion.button
               onClick={(e) => {
                 e.stopPropagation();
@@ -134,15 +185,14 @@ export function Navbar() {
             >
               Pricing
             </a>
-            <a
-              href="#login"
-              className="block hover:text-teal-400 transition-colors"
-            >
-              Login
-            </a>
-            <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white cursor-pointer">
-              Sign Up
-            </Button>
+            <SignedIn>
+              <a
+                href="/dashboard"
+                className="block hover:text-teal-400 transition-colors"
+              >
+                Dashboard
+              </a>
+            </SignedIn>
           </div>
         </motion.div>
       </div>
