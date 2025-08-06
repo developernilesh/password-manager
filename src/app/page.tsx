@@ -1,40 +1,51 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useScroll, useTransform } from "framer-motion";
-import { HeroSection } from "@/components/sections/HeroSection";
-import { FeaturesSection } from "@/components/sections/FeaturesSection";
-import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
-import { SecuritySection } from "@/components/sections/SecuritySection";
-import { PricingSection } from "@/components/sections/PricingSection";
-import { CTASection } from "@/components/sections/CTASection";
-import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LandingPage } from "@/components/pages/LandingPage";
 
-export default function PasswordManagerLanding() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+export default function HomePage() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      if (isMenuOpen) setIsMenuOpen(false);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [isMenuOpen]);
+    if (isLoaded && isSignedIn) {
+      setShouldRedirect(true);
+    }
+  }, [isLoaded, isSignedIn]);
 
-  return (
-    <>
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <SecuritySection />
-        <PricingSection />
-        <CTASection />
-      </main>
-      <Footer />
-    </>
-  );
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/dashboard");
+    }
+  }, [shouldRedirect, router]);
+
+  // Show loading state while Clerk is loading
+  if (!isLoaded || isSignedIn) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is signed in, show loading while redirecting
+  if (isSignedIn) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is not signed in, show landing page
+  return <LandingPage />;
 }
