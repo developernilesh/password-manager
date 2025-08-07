@@ -10,6 +10,7 @@ import {
   SignedOut,
   SignInButton,
   SignUpButton,
+  useAuth,
   UserButton,
 } from "@clerk/nextjs";
 
@@ -30,9 +31,9 @@ export function Navbar() {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="fixed top-0 w-full bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 z-50"
+      className="fixed top-0 w-full bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 z-50"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer">
@@ -44,62 +45,61 @@ export function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#home" className="hover:text-teal-400 transition-colors">
-              Home
-            </a>
-            <a
-              href="#features"
-              className="hover:text-teal-400 transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#security"
-              className="hover:text-teal-400 transition-colors"
-            >
-              Security
-            </a>
-            <a
-              href="#pricing"
-              className="hover:text-teal-400 transition-colors"
-            >
-              Pricing
-            </a>
-            <div className="flex gap-4 items-center">
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
-                      <span className="relative z-10">Sign In</span>
-                    </Button>
-                  </motion.div>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
-                      <span className="relative z-10">Sign Up</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    </Button>
-                  </motion.div>
-                </SignUpButton>
-              </SignedOut>
-              <SignedIn>
+          <div className="hidden md:block">
+            <SignedOut>
+              <div className="flex items-center space-x-8">
                 <a
-                  href="/dashboard"
+                  href="#home"
                   className="hover:text-teal-400 transition-colors"
                 >
-                  Dashboard
+                  Home
                 </a>
-                <UserButton />
-              </SignedIn>
-            </div>
+                <a
+                  href="#features"
+                  className="hover:text-teal-400 transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#security"
+                  className="hover:text-teal-400 transition-colors"
+                >
+                  Security
+                </a>
+                <a
+                  href="#pricing"
+                  className="hover:text-teal-400 transition-colors"
+                >
+                  Pricing
+                </a>
+                <div className="flex gap-4 items-center">
+                  <SignInButton mode="modal">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
+                        <span className="relative z-10">Sign In</span>
+                      </Button>
+                    </motion.div>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
+                        <span className="relative z-10">Sign Up</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      </Button>
+                    </motion.div>
+                  </SignUpButton>
+                </div>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -123,29 +123,31 @@ export function Navbar() {
                 <UserButton />
               </SignedIn>
             </div>
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMenuOpen(!isMenuOpen);
-              }}
-              className="p-2"
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.div
-                animate={isMenuOpen ? "open" : "closed"}
-                variants={{
-                  open: { rotate: 180 },
-                  closed: { rotate: 0 },
+            <SignedOut>
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMenuOpen(!isMenuOpen);
                 }}
-                transition={{ duration: 0.3 }}
+                className="p-2"
+                whileTap={{ scale: 0.95 }}
               >
-                {isMenuOpen ? (
-                  <RxCross2 className="h-6 w-6" />
-                ) : (
-                  <FiMenu className="h-6 w-6" />
-                )}
-              </motion.div>
-            </motion.button>
+                <motion.div
+                  animate={isMenuOpen ? "open" : "closed"}
+                  variants={{
+                    open: { rotate: 180 },
+                    closed: { rotate: 0 },
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isMenuOpen ? (
+                    <RxCross2 className="h-6 w-6" />
+                  ) : (
+                    <FiMenu className="h-6 w-6" />
+                  )}
+                </motion.div>
+              </motion.button>
+            </SignedOut>
           </div>
         </div>
 
