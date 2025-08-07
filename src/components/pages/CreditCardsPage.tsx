@@ -1,0 +1,240 @@
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { FiPlus, FiSearch, FiEye, FiEyeOff, FiEdit, FiTrash2, FiCopy, FiCreditCard } from "react-icons/fi";
+
+interface CreditCard {
+  id: string;
+  cardName: string;
+  cardNumber: string;
+  cardholderName: string;
+  expiryDate: string;
+  cvv: string;
+  bank: string;
+  category: string;
+  createdAt: string;
+}
+
+export function CreditCardsPage() {
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCardDetails, setShowCardDetails] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const categories = ["all", "personal", "business", "travel", "shopping", "other"];
+
+  const filteredCards = creditCards.filter(card => {
+    const matchesSearch = card.cardName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         card.bank.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || card.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const maskCardNumber = (cardNumber: string) => {
+    return cardNumber.replace(/\d(?=\d{4})/g, "*");
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    // You could add a toast notification here
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Credit Cards</h1>
+          <p className="text-gray-400">Securely store and manage your credit card information</p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
+        >
+          <FiPlus className="h-5 w-5" />
+          <span>Add Card</span>
+        </motion.button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1">
+            <div className="relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search cards..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => setShowCardDetails(!showCardDetails)}
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              {showCardDetails ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Credit Cards Grid */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
+        {filteredCards.length === 0 ? (
+          <div className="text-center py-12">
+            <FiCreditCard className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">No credit cards yet</h3>
+            <p className="text-gray-400 mb-6">Start by adding your first credit card to get organized</p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+            >
+              <FiPlus className="h-5 w-5" />
+              <span>Add Your First Card</span>
+            </motion.button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+            {filteredCards.map((card) => (
+              <motion.div
+                key={card.id}
+                whileHover={{ scale: 1.02 }}
+                className="bg-gray-700/50 rounded-lg p-6 border border-gray-600 hover:border-gray-500 transition-colors"
+              >
+                {/* Card Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <FiCreditCard className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{card.cardName}</h3>
+                      <p className="text-sm text-gray-400">{card.bank}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="p-2 hover:bg-gray-600 rounded transition-colors">
+                      <FiEdit className="h-4 w-4 text-blue-400" />
+                    </button>
+                    <button className="p-2 hover:bg-gray-600 rounded transition-colors">
+                      <FiTrash2 className="h-4 w-4 text-red-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Card Details */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-gray-400">Card Number</label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-white font-mono">
+                        {showCardDetails ? card.cardNumber : maskCardNumber(card.cardNumber)}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(card.cardNumber)}
+                        className="p-1 hover:bg-gray-600 rounded transition-colors"
+                      >
+                        <FiCopy className="h-3 w-3 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-400">Cardholder</label>
+                      <p className="text-white text-sm">{card.cardholderName}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400">Expires</label>
+                      <p className="text-white text-sm">{card.expiryDate}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-400">CVV</label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-white font-mono">
+                        {showCardDetails ? card.cvv : "***"}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(card.cvv)}
+                        className="p-1 hover:bg-gray-600 rounded transition-colors"
+                      >
+                        <FiCopy className="h-3 w-3 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {card.category}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <FiCreditCard className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Total Cards</p>
+              <p className="text-2xl font-bold">{creditCards.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <FiCreditCard className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Active Cards</p>
+              <p className="text-2xl font-bold">{creditCards.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+              <FiCreditCard className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Banks</p>
+              <p className="text-2xl font-bold">{new Set(creditCards.map(c => c.bank)).size}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 
