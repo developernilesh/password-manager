@@ -4,9 +4,9 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { DashboardHome } from "@/components/pages/DashboardHome";
+import { PasswordGeneratorPage } from "@/components/pages/PasswordGeneratorPage";
 
-export default function DashboardPage() {
+export default function GeneratorDashboardPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   // If user is signed in, show dashboard
   return (
     <DashboardLayout>
-      <DashboardHome />
+      <PasswordGeneratorPage />
     </DashboardLayout>
   );
 } 
