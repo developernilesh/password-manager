@@ -18,7 +18,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (shouldRedirect) {
-      router.push("/dashboard");
+      router.push("/user/dashboard");
     }
   }, [shouldRedirect, router]);
 
