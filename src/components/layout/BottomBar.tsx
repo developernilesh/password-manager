@@ -13,22 +13,22 @@ const menuItems = [
   {
     name: "Dashboard",
     icon: FiHome,
-    path: "/dashboard",
+    path: "/user/dashboard",
   },
   {
     name: "Passwords",
     icon: FiLock,
-    path: "/dashboard/passwords",
+    path: "/user/passwords",
   },
   {
     name: "Cards",
     icon: FiCreditCard,
-    path: "/dashboard/credit-cards",
+    path: "/user/credit-cards",
   },
   {
     name: "Generator",
     icon: FiKey,
-    path: "/dashboard/generator",
+    path: "/user/password-generator",
   }
 ];
 
