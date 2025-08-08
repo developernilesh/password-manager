@@ -3,10 +3,10 @@
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CreditCardsPage } from "@/components/pages/CreditCardsPage";
+import { PageLayout } from "@/components/layout/PageLayout";
 
-export default function CreditCardsDashboardPage() {
+export default function UserCreditCards() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -49,8 +49,8 @@ export default function CreditCardsDashboardPage() {
 
   // If user is signed in, show dashboard
   return (
-    <DashboardLayout>
+    <PageLayout>
       <CreditCardsPage />
-    </DashboardLayout>
+    </PageLayout>
   );
 } 
