@@ -8,25 +8,25 @@ const menuItems = [
   {
     name: "Dashboard",
     icon: FiHome,
-    path: "/dashboard",
+    path: "/user/dashboard",
     description: "Overview and statistics",
   },
   {
     name: "Passwords",
     icon: FiLock,
-    path: "/dashboard/passwords",
+    path: "/user/passwords",
     description: "Manage your passwords",
   },
   {
     name: "Credit Cards",
     icon: FiCreditCard,
-    path: "/dashboard/credit-cards",
+    path: "/user/credit-cards",
     description: "Secure credit card storage",
   },
   {
     name: "Password Generator",
     icon: FiKey,
-    path: "/dashboard/generator",
+    path: "/user/password-generator",
     description: "Generate strong passwords",
   },
 ];
