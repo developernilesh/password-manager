@@ -23,7 +23,7 @@ export default function HomePage() {
   }, [shouldRedirect, router]);
 
   // Show loading state while Clerk is loading
-  if (!isLoaded || isSignedIn) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
