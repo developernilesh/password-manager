@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { FiPlus, FiGlobe } from "react-icons/fi";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FiPlus, FiGlobe, FiLock } from "react-icons/fi";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,8 +11,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { PasswordsTable } from "@/components/pages/PasswordsTable";
 
@@ -34,6 +34,18 @@ export function PasswordsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [visibleById, setVisibleById] = useState<Record<string, boolean>>({});
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [unlockInput, setUnlockInput] = useState("");
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const MASTER_PASSWORD = "Abc@1234"; // constant for now
+
+  type PendingAction =
+    | { type: "toggle-visibility"; id: string }
+    | { type: "copy-password"; value: string };
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const pendingResolveRef = useRef<((ok: boolean) => void) | null>(null);
 
   const categories = ["all", "social", "work", "finance", "shopping", "other"];
 
@@ -89,7 +101,54 @@ export function PasswordsPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // You could add a toast notification here
+  };
+
+  const requestUnlock = (action: PendingAction): Promise<boolean> => {
+    if (isUnlocked) {
+      if (action.type === "toggle-visibility") {
+        setVisibleById((prev) => ({ ...prev, [action.id]: !prev[action.id] }));
+      } else if (action.type === "copy-password") {
+        copyToClipboard(action.value);
+      }
+      return Promise.resolve(true);
+    }
+    setUnlockError(null);
+    setIsUnlockOpen(true);
+    setPendingAction(action);
+    return new Promise<boolean>((resolve) => {
+      pendingResolveRef.current = resolve;
+    });
+  };
+
+  const handleUnlockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (unlockInput === MASTER_PASSWORD) {
+      setIsUnlocked(true);
+      setIsUnlockOpen(false);
+      setUnlockInput("");
+      setUnlockError(null);
+      if (pendingAction) {
+        if (pendingAction.type === "toggle-visibility") {
+          setVisibleById((prev) => ({ ...prev, [pendingAction.id]: !prev[pendingAction.id] }));
+        } else if (pendingAction.type === "copy-password") {
+          copyToClipboard(pendingAction.value);
+        }
+        pendingResolveRef.current?.(true);
+        pendingResolveRef.current = null;
+        setPendingAction(null);
+      }
+    } else {
+      setUnlockError("Incorrect master password");
+    }
+  };
+
+  const handleUnlockCancel = () => {
+    setIsUnlockOpen(false);
+    setUnlockInput("");
+    setUnlockError(null);
+    pendingResolveRef.current?.(false);
+    pendingResolveRef.current = null;
+    setPendingAction(null);
   };
 
   const savePasswords = (next: Password[]) => {
@@ -136,7 +195,7 @@ export function PasswordsPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<PasswordFormInput, any, PasswordFormOutput>({
+  } = useForm<PasswordFormInput, unknown, PasswordFormOutput>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
       title: "",
@@ -154,7 +213,7 @@ export function PasswordsPage() {
       username: "",
       password: "",
       url: "",
-      category: undefined as any,
+      category: undefined as unknown as PasswordFormInput["category"],
     });
     setIsModalOpen(true);
   };
@@ -226,24 +285,26 @@ export function PasswordsPage() {
 
       {/* Search + Filter */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by title, username, or URL"
-            className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 max-w-md"
+            className="w-full sm:flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 w-48"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
+          <div className="flex w-full sm:w-auto">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full sm:w-48 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -269,16 +330,22 @@ export function PasswordsPage() {
         ) : (
           <PasswordsTable
             data={paginatedPasswords}
-            onCopy={copyToClipboard}
+            onCopyUsername={(text) => {
+              copyToClipboard(text);
+              return true;
+            }}
+            onCopyPassword={(text) => requestUnlock({ type: "copy-password", value: text })}
             onEdit={openEditModal}
             onDelete={handleDelete}
+            visibleById={visibleById}
+            onToggleVisibility={(id) => requestUnlock({ type: "toggle-visibility", id })}
           />
         )}
       </div>
 
       {/* Bottom controls - outside the table */}
       {passwords.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-2 sm:px-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-2 sm:px-0 mb-0 md:mb-16 lg:mb-0">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <label htmlFor="rows-per-page" className="text-gray-400">
               Rows per page:
@@ -349,10 +416,10 @@ export function PasswordsPage() {
             </DialogClose>
           </DialogHeader>
           <form
-            className="px-6 py-5 space-y-5"
+            className="pt-4 space-y-5"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6">
               <div className="sm:col-span-1">
                 <label className="block text-sm text-gray-300 mb-1">
                   Title
@@ -404,7 +471,7 @@ export function PasswordsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6">
               <div>
                 <label className="block text-sm text-gray-300 mb-1">
                   Username / Email
@@ -438,8 +505,8 @@ export function PasswordsPage() {
               </div>
             </div>
 
-            {/* <DialogFooter> */}
-            <div className="border-t border-gray-600 flex justify-end items-center gap-4 pt-4">
+            <DialogFooter>
+            <div className="flex justify-end items-center gap-4">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel
@@ -453,7 +520,43 @@ export function PasswordsPage() {
                 {editingPassword ? "Save Changes" : "Add"}
               </Button>
             </div>
-            {/* </DialogFooter> */}
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Master Password Unlock Modal */}
+      <Dialog open={isUnlockOpen} onOpenChange={(open) => (open ? setIsUnlockOpen(true) : handleUnlockCancel())}>
+        <DialogContent className="w-11/12 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FiLock className="h-5 w-5" />
+              Enter Master Password
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUnlockSubmit} className="space-y-4">
+            <div className="px-6 py-2">
+              <label className="block text-sm text-gray-300 mb-1">Master Password</label>
+              <input
+                type="password"
+                className="w-full rounded-md bg-gray-700 border border-gray-600 px-3 py-2 text-white outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="Enter master password"
+                value={unlockInput}
+                onChange={(e) => setUnlockInput(e.target.value)}
+                autoFocus
+              />
+              {unlockError && (
+                <p className="text-red-400 text-sm mt-1">{unlockError}</p>
+              )}
+            </div>
+            <div className="border-t border-gray-600 flex justify-end items-center gap-4 px-6 py-4">
+              <Button type="button" variant="secondary" onClick={handleUnlockCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-teal-600 hover:bg-teal-500 text-white">
+                Unlock
+              </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
