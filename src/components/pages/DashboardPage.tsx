@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FiLock, FiShield, FiKey, FiSettings, FiPlus, FiDownload, FiShield as FiSecurity, FiBarChart } from "react-icons/fi";
+import { FiShield, FiKey, FiSettings, FiPlus, FiDownload, FiShield as FiSecurity, FiBarChart } from "react-icons/fi";
 
 export function DashboardPage() {
   return (
@@ -9,7 +9,7 @@ export function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-400">Welcome back! Here's an overview of your secure vault.</p>
+        <p className="text-gray-400">Welcome back! Here&apos;s an overview of your secure vault.</p>
       </div>
       
       {/* Stats Cards */}

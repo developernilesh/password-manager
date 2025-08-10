@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiCheck, FiGlobe, FiLock, FiStar, FiUsers } from "react-icons/fi";
 
 const securityPoints = [
-  "Zero-knowledge architecture - we can't see your data",
+  "Zero-knowledge architecture - we can&apos;t see your data",
   "End-to-end encryption with AES-256",
   "Regular security audits by third-party experts",
   "SOC 2 Type II certified infrastructure",
@@ -89,7 +89,7 @@ export function SecuritySection() {
                   ))}
                 </div>
                 <span className="text-gray-300">
-                  "Best password manager I've ever used!"
+                  &quot;Best password manager I&apos;ve ever used!&quot;
                 </span>
               </div>
               <div className="flex items-center space-x-4">

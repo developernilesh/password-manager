@@ -51,7 +51,7 @@ export function PricingSection() {
             Simple Pricing
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Choose the plan that's right for you
+            Choose the plan that&apos;s right for you
           </p>
         </motion.div>
 

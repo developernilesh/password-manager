@@ -305,7 +305,7 @@ export function PasswordGeneratorPage() {
                       onChange={(e) => setExcludeAmbiguous(e.target.checked)}
                       className="w-4 h-4 text-teal-500 bg-gray-700 border-gray-600 rounded focus:ring-teal-500"
                     />
-                    <span className="text-sm">Exclude ambiguous characters ({ } [ ] \ / " ' ` ~ , ; : . &#60; &gt;)</span>
+                  <span className="text-sm">Exclude ambiguous characters (&#123; &#125; &#91; &#93; &#92; &#47; &quot; &apos; &#96; ~ , ; : . &#60; &#62;)</span>
                   </label>
                 </div>
               </div>

@@ -105,7 +105,7 @@ export function HowItWorksSection() {
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Setting up your secure password vault takes less than 5 minutes.
-            Here's how it works:
+            Here&apos;s how it works:
           </p>
         </motion.div>
 
