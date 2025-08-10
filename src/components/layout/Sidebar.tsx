@@ -37,7 +37,7 @@ export function Sidebar() {
   const router = useRouter();
 
   return (
-    <div className="hidden md:flex md:w-80 lg:w-80 flex-col h-full bg-gray-900 border-r border-gray-700">
+    <div className="hidden lg:flex md:w-80 lg:w-80 flex-col h-full bg-gray-900 border-r border-gray-700">
       <div className="flex flex-col">
         {/* Navigation */}
         <nav className="flex-1 p-6">
@@ -55,7 +55,7 @@ export function Sidebar() {
                 <item.icon className="h-5 w-5" />
                 <div className="flex-1">
                   <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500 group-hover:text-gray-400">
+                  <div className="text-xs text-gray-500 group-hover:text-gray-400 hidden xl:block">
                     {item.description}
                   </div>
                 </div>
