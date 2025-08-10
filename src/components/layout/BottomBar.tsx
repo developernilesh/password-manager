@@ -36,7 +36,7 @@ export function BottomBar() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 lg:hidden">
       <div className="flex items-center justify-around py-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
