@@ -119,6 +119,13 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Ensure all actionable buttons show pointer cursor */
+  button:not(:disabled) {
+    @apply cursor-pointer;
+  }
+  button:disabled {
+    @apply cursor-not-allowed;
+  }
 }
 
 /* Custom slider styles */
