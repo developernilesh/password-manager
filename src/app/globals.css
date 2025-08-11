@@ -154,6 +154,46 @@
   border-radius: 4px;
 }
 
+/* Dark credit card gradient background */
+.credit-card-bg {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background-color: #0a0a0a; /* gray-950 */
+  border: 1px solid #ffffff23;
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    inset 0 -1px 0 #00000033,
+    0 0 0 1px #ffffff08;
+
+  /* Layered gradients for modern card feel using Tailwind gray palette tones */
+  background-image:
+    /* soft light top-right */
+    radial-gradient(800px 400px at 110% -10%, #ffffff0f 0%, transparent 60%),
+    /* soft light bottom-left */
+    radial-gradient(700px 350px at -10% 110%, #ffffff0d 0%, transparent 60%),
+    /* subtle diagonal bands */
+    linear-gradient(150deg, rgba(255, 255, 255, 0.04) 0%, #ffffff00 20%, rgba(255, 255, 255, 0.03) 40%, #ffffff00 70%),
+    /* base dark gradient: gray-800 -> gray-900 */
+    linear-gradient(160deg, #1d3453 0%, #050d1c 100%);
+    /* linear-gradient(160deg, #1f2937 0%, #111827 100%); */
+  background-blend-mode: screen, screen, soft-light, normal;
+}
+
+.credit-card-bg::after {
+  /* vignette */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.dark .credit-card-bg {
+  background-color: #0a0a0a; /* gray-950 */
+  border-color: #ffffff1a;
+}
+
 .slider::-moz-range-track {
   background: #374151;
   height: 8px;
