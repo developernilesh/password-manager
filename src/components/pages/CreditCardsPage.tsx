@@ -14,7 +14,7 @@ import {
   DialogClose,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { CreditCardsGrid } from "@/components/pages/CreditCardsGrid";
+import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCardsGrid";
 
 interface CreditCard {
   id: string;

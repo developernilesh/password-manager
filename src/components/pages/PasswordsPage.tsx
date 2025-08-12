@@ -14,7 +14,7 @@ import {
   DialogClose,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { PasswordsTable } from "@/components/pages/PasswordsTable";
+import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable";
 
 interface Password {
   id: string;

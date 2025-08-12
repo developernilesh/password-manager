@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { FiShield, FiKey, FiSettings, FiPlus, FiDownload, FiShield as FiSecurity, FiBarChart } from "react-icons/fi";
+import { MasterPasswordSection } from "@/components/core/dashboard/MasterPasswordSection";
 
 export function DashboardPage() {
   return (
@@ -67,6 +68,9 @@ export function DashboardPage() {
         </motion.div>
       </div>
 
+      {/* Master Password Section */}
+      <MasterPasswordSection />
+
       {/* Quick Actions */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
         <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
@@ -102,6 +106,15 @@ export function DashboardPage() {
           >
             <FiDownload className="h-5 w-5" />
             <span>Export Data</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-gray-600 hover:bg-gray-700 text-white p-4 rounded-lg transition-colors flex items-center space-x-2"
+            onClick={() => window.location.href = '/user/settings'}
+          >
+            <FiSettings className="h-5 w-5" />
+            <span>Settings</span>
           </motion.button>
         </div>
       </div>

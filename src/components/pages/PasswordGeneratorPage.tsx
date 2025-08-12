@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { FiCopy, FiRefreshCw, FiCheck, FiKey, FiSettings, FiShield } from "react-icons/fi";
+import { Button } from "@/components/ui/button";
 
 export function PasswordGeneratorPage() {
   const [generatedPassword, setGeneratedPassword] = useState("");
@@ -37,6 +37,35 @@ export function PasswordGeneratorPage() {
 
     let password = "";
     for (let i = 0; i < passwordLength; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    
+    setGeneratedPassword(password);
+    setCopied(false);
+  };
+
+  const generatePasswordWithSettings = (length: number, uppercase: boolean, lowercase: boolean, numbers: boolean, symbols: boolean, similar: boolean, ambiguous: boolean) => {
+    let charset = "";
+    if (uppercase) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (lowercase) charset += "abcdefghijklmnopqrstuvwxyz";
+    if (numbers) charset += "0123456789";
+    if (symbols) charset += "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    
+    if (similar) {
+      charset = charset.replace(/[il1Lo0O]/g, "");
+    }
+    
+    if (ambiguous) {
+      charset = charset.replace(/[{}[\]\\/"'`~,;:.<>]/g, "");
+    }
+
+    if (charset === "") {
+      setGeneratedPassword("");
+      return;
+    }
+
+    let password = "";
+    for (let i = 0; i < length; i++) {
       password += charset.charAt(Math.floor(Math.random() * charset.length));
     }
     
@@ -95,12 +124,14 @@ export function PasswordGeneratorPage() {
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white font-mono text-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Click 'Generate Password'"
                 />
-                <button
+                <Button
                   onClick={copyToClipboard}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-600 rounded transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
                 >
-                  {copied ? <FiCheck className="h-5 w-5 text-green-400" /> : <FiCopy className="h-5 w-5 text-gray-400" />}
-                </button>
+                  {copied ? <FiCheck className="h-4 w-4 text-green-400" /> : <FiCopy className="h-4 w-4 text-gray-400" />}
+                </Button>
               </div>
 
               {/* Password Strength */}
@@ -108,14 +139,29 @@ export function PasswordGeneratorPage() {
                 <span className="text-sm text-gray-400">Strength:</span>
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div
-                        key={level}
-                        className={`w-3 h-2 rounded ${
-                          level <= strength.score ? strength.color.replace('text-', 'bg-') : 'bg-gray-600'
-                        }`}
-                      />
-                    ))}
+                    {strength.label === "No Password" ? null : 
+                      strength.label === "Weak" ? (
+                        <div className="w-3 h-2 rounded bg-red-400" />
+                      ) : strength.label === "Fair" ? (
+                        <>
+                          <div className="w-3 h-2 rounded bg-yellow-400" />
+                          <div className="w-3 h-2 rounded bg-yellow-400" />
+                        </>
+                      ) : strength.label === "Good" ? (
+                        <>
+                          <div className="w-3 h-2 rounded bg-blue-400" />
+                          <div className="w-3 h-2 rounded bg-blue-400" />
+                          <div className="w-3 h-2 rounded bg-blue-400" />
+                        </>
+                      ) : strength.label === "Strong" ? (
+                        <>
+                          <div className="w-3 h-2 rounded bg-green-400" />
+                          <div className="w-3 h-2 rounded bg-green-400" />
+                          <div className="w-3 h-2 rounded bg-green-400" />
+                          <div className="w-3 h-2 rounded bg-green-400" />
+                        </>
+                      ) : null
+                    }
                   </div>
                   <span className={`text-sm font-medium ${strength.color}`}>
                     {strength.label}
@@ -124,15 +170,13 @@ export function PasswordGeneratorPage() {
               </div>
 
               {/* Generate Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
                 onClick={generatePassword}
-                className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="w-full h-12 text-base bg-teal-600 hover:bg-teal-500 text-white"
               >
                 <FiRefreshCw className="h-5 w-5" />
                 <span>Generate Password</span>
-              </motion.button>
+              </Button>
             </div>
           </div>
 
@@ -140,43 +184,43 @@ export function PasswordGeneratorPage() {
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-semibold mb-4">Quick Generate</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
                 onClick={() => {
                   setPasswordLength(8);
                   setIncludeUppercase(true);
                   setIncludeLowercase(true);
                   setIncludeNumbers(true);
                   setIncludeSymbols(false);
-                  generatePassword();
+                  setExcludeSimilar(false);
+                  setExcludeAmbiguous(false);
+                  generatePasswordWithSettings(8, true, true, true, false, false, false);
                 }}
-                className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-colors"
+                variant="default"
+                className="h-auto p-3 flex-col items-start justify-start bg-blue-600 hover:bg-blue-500 text-white"
               >
                 <div className="text-sm font-medium">Simple</div>
                 <div className="text-xs text-blue-200">8 chars, no symbols</div>
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              </Button>
+               
+              <Button
                 onClick={() => {
                   setPasswordLength(12);
                   setIncludeUppercase(true);
                   setIncludeLowercase(true);
                   setIncludeNumbers(true);
                   setIncludeSymbols(true);
-                  generatePassword();
+                  setExcludeSimilar(false);
+                  setExcludeAmbiguous(false);
+                  generatePasswordWithSettings(12, true, true, true, true, false, false);
                 }}
-                className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors"
+                variant="default"
+                className="h-auto p-3 flex-col items-start justify-start bg-green-600 hover:bg-green-500 text-white"
               >
                 <div className="text-sm font-medium">Standard</div>
                 <div className="text-xs text-green-200">12 chars, all types</div>
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              </Button>
+               
+              <Button
                 onClick={() => {
                   setPasswordLength(20);
                   setIncludeUppercase(true);
@@ -184,17 +228,17 @@ export function PasswordGeneratorPage() {
                   setIncludeNumbers(true);
                   setIncludeSymbols(true);
                   setExcludeSimilar(true);
-                  generatePassword();
+                  setExcludeAmbiguous(false);
+                  generatePasswordWithSettings(20, true, true, true, true, true, false);
                 }}
-                className="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg transition-colors"
+                variant="default"
+                className="h-auto p-3 flex-col items-start justify-start bg-purple-600 hover:bg-purple-500 text-white"
               >
                 <div className="text-sm font-medium">Strong</div>
                 <div className="text-xs text-purple-200">20 chars, complex</div>
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              </Button>
+               
+              <Button
                 onClick={() => {
                   setPasswordLength(32);
                   setIncludeUppercase(true);
@@ -203,13 +247,14 @@ export function PasswordGeneratorPage() {
                   setIncludeSymbols(true);
                   setExcludeSimilar(true);
                   setExcludeAmbiguous(true);
-                  generatePassword();
+                  generatePasswordWithSettings(32, true, true, true, true, true, true);
                 }}
-                className="bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg transition-colors"
+                variant="default"
+                className="h-auto p-3 flex-col items-start justify-start bg-red-600 hover:bg-red-500 text-white"
               >
                 <div className="text-sm font-medium">Ultra</div>
                 <div className="text-xs text-red-200">32 chars, maximum</div>
-              </motion.button>
+              </Button>
             </div>
           </div>
         </div>
