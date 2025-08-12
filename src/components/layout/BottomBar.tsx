@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { 
   FiHome, 
   FiLock, 
@@ -34,19 +35,28 @@ const menuItems = [
 
 export function BottomBar() {
   const pathname = usePathname();
+  const [clickedPath, setClickedPath] = useState<string | null>(null);
+
+  const handleClick = (path: string) => {
+    setClickedPath(path);
+    // Reset after a brief moment to allow navigation
+    setTimeout(() => setClickedPath(null), 100);
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 lg:hidden">
       <div className="flex items-center justify-around py-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.path;
+          const isActive = pathname === item.path || clickedPath === item.path;
           
           return (
             <Link
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-all duration-200 ${
+              prefetch={true}
+              onClick={() => handleClick(item.path)}
+              className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-all duration-100 ${
                 isActive
                   ? "text-teal-400"
                   : "text-gray-400 hover:text-white"
