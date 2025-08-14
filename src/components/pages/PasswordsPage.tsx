@@ -17,6 +17,7 @@ import {
 import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable";
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface Password {
   id: string;
@@ -42,7 +43,10 @@ export function PasswordsPage() {
   const [unlockInput, setUnlockInput] = useState("");
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
-  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(
+    null
+  );
   const router = useRouter();
 
   type PendingAction =
@@ -70,8 +74,15 @@ export function PasswordsPage() {
   useEffect(() => {
     // Check if master password is set
     async function checkMasterPassword() {
-      const hash = await getMasterPasswordHash();
-      setHasMasterPassword(!!hash);
+      setIsLoading(true);
+      try {
+        const hash = await getMasterPasswordHash();
+        setHasMasterPassword(!!hash);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
     checkMasterPassword();
   }, []);
@@ -239,8 +250,9 @@ export function PasswordsPage() {
   // Modified openAddModal to check master password
   const openAddModal = () => {
     if (!hasMasterPassword) {
-      alert("You must set up your master password before adding any password.");
-      router.push("/user/settings"); // Assuming MasterPasswordSection is on dashboard
+      toast.error(
+        "You must set up your master password before adding any password."
+      );
       return;
     }
     setEditingPassword(null);
@@ -313,7 +325,7 @@ export function PasswordsPage() {
         <Button
           onClick={openAddModal}
           className="bg-teal-600 hover:bg-teal-500 text-white"
-          disabled={hasMasterPassword === false}
+          disabled={isLoading}
         >
           <FiPlus className="h-5 w-5" />
           Add Password
@@ -328,6 +340,7 @@ export function PasswordsPage() {
             <Button
               className="bg-teal-600 hover:bg-teal-500 text-white"
               onClick={() => router.push("/user/settings")}
+              disabled={isLoading}
             >
               Go to Master Password Setup
             </Button>
@@ -374,6 +387,7 @@ export function PasswordsPage() {
             <Button
               onClick={openAddModal}
               className="bg-teal-600 hover:bg-teal-500 text-white mx-auto"
+              disabled={isLoading}
             >
               <FiPlus className="h-5 w-5" />
               Add Your First Password
@@ -623,7 +637,7 @@ export function PasswordsPage() {
                 disabled={isUnlocking}
                 className="bg-teal-600 hover:bg-teal-500 text-white"
               >
-                {isUnlocking ? 'Unlocking...' : 'Unlock'}
+                {isUnlocking ? "Unlocking..." : "Unlock"}
               </Button>
             </div>
           </form>

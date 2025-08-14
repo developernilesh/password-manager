@@ -17,6 +17,7 @@ import {
 import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCardsGrid";
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface CreditCard {
   id: string;
@@ -50,7 +51,9 @@ export function CreditCardsPage() {
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
 
-  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(null);
+  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(
+    null
+  );
   const router = useRouter();
 
   type SensitiveField = "number" | "cvv";
@@ -385,8 +388,9 @@ export function CreditCardsPage() {
 
   const openAddModal = () => {
     if (!hasMasterPassword) {
-      alert("You must set up your master password before adding any credit card.");
-      router.push("/user/dashboard"); // Assuming MasterPasswordSection is on dashboard
+      toast.error(
+        "You must set up your master password before adding any credit card."
+      );
       return;
     }
     setEditingCard(null);
@@ -470,7 +474,6 @@ export function CreditCardsPage() {
         <Button
           onClick={openAddModal}
           className="bg-teal-600 hover:bg-teal-500 text-white"
-          disabled={hasMasterPassword === false}
         >
           <FiPlus className="h-5 w-5" />
           Add Card
@@ -484,7 +487,7 @@ export function CreditCardsPage() {
           <div className="mt-2">
             <Button
               className="bg-teal-600 hover:bg-teal-500 text-white"
-              onClick={() => router.push("/user/dashboard")}
+              onClick={() => router.push("/user/settings")}
             >
               Go to Master Password Setup
             </Button>
@@ -827,7 +830,7 @@ export function CreditCardsPage() {
           </form>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog
         open={isUnlockOpen}
         onOpenChange={(open) =>
