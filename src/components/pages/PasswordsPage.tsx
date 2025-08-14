@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable";
+import { verifyMasterPassword } from "@/actions/actions";
 
 interface Password {
   id: string;
@@ -39,12 +40,14 @@ export function PasswordsPage() {
   const [isUnlockOpen, setIsUnlockOpen] = useState(false);
   const [unlockInput, setUnlockInput] = useState("");
   const [unlockError, setUnlockError] = useState<string | null>(null);
-  const MASTER_PASSWORD = "Abc@1234"; // constant for now
+  const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
 
   type PendingAction =
     | { type: "toggle-visibility"; id: string }
     | { type: "copy-password"; value: string };
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null
+  );
   const pendingResolveRef = useRef<((ok: boolean) => void) | null>(null);
 
   const categories = ["all", "social", "work", "finance", "shopping", "other"];
@@ -120,25 +123,40 @@ export function PasswordsPage() {
     });
   };
 
-  const handleUnlockSubmit = (e: React.FormEvent) => {
+  const handleUnlockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (unlockInput === MASTER_PASSWORD) {
-      setIsUnlocked(true);
-      setIsUnlockOpen(false);
-      setUnlockInput("");
-      setUnlockError(null);
-      if (pendingAction) {
-        if (pendingAction.type === "toggle-visibility") {
-          setVisibleById((prev) => ({ ...prev, [pendingAction.id]: !prev[pendingAction.id] }));
-        } else if (pendingAction.type === "copy-password") {
-          copyToClipboard(pendingAction.value);
+    if (!unlockInput) {
+      setUnlockError("Please enter the master password");
+      return;
+    }
+    setIsUnlocking(true);
+    try {
+      const isMatched = await verifyMasterPassword(unlockInput);
+      if (isMatched) {
+        setIsUnlocked(true);
+        setIsUnlockOpen(false);
+        setUnlockInput("");
+        setUnlockError(null);
+        if (pendingAction) {
+          if (pendingAction.type === "toggle-visibility") {
+            setVisibleById((prev) => ({
+              ...prev,
+              [pendingAction.id]: !prev[pendingAction.id],
+            }));
+          } else if (pendingAction.type === "copy-password") {
+            copyToClipboard(pendingAction.value);
+          }
+          pendingResolveRef.current?.(true);
+          pendingResolveRef.current = null;
+          setPendingAction(null);
         }
-        pendingResolveRef.current?.(true);
-        pendingResolveRef.current = null;
-        setPendingAction(null);
+      } else {
+        setUnlockError("Incorrect master password");
       }
-    } else {
-      setUnlockError("Incorrect master password");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUnlocking(false);
     }
   };
 
@@ -334,11 +352,15 @@ export function PasswordsPage() {
               copyToClipboard(text);
               return true;
             }}
-            onCopyPassword={(text) => requestUnlock({ type: "copy-password", value: text })}
+            onCopyPassword={(text) =>
+              requestUnlock({ type: "copy-password", value: text })
+            }
             onEdit={openEditModal}
             onDelete={handleDelete}
             visibleById={visibleById}
-            onToggleVisibility={(id) => requestUnlock({ type: "toggle-visibility", id })}
+            onToggleVisibility={(id) =>
+              requestUnlock({ type: "toggle-visibility", id })
+            }
           />
         )}
       </div>
@@ -415,10 +437,7 @@ export function PasswordsPage() {
               </button>
             </DialogClose>
           </DialogHeader>
-          <form
-            className="pt-4 space-y-5"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="pt-4 space-y-5" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6">
               <div className="sm:col-span-1">
                 <label className="block text-sm text-gray-300 mb-1">
@@ -506,27 +525,32 @@ export function PasswordsPage() {
             </div>
 
             <DialogFooter>
-            <div className="flex justify-end items-center gap-4">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+              <div className="flex justify-end items-center gap-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="submit"
+                  className="bg-teal-600 hover:bg-teal-500 text-white"
+                  disabled={isSubmitting}
+                >
+                  {editingPassword ? "Save Changes" : "Add"}
                 </Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                className="bg-teal-600 hover:bg-teal-500 text-white"
-                disabled={isSubmitting}
-              >
-                {editingPassword ? "Save Changes" : "Add"}
-              </Button>
-            </div>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* Master Password Unlock Modal */}
-      <Dialog open={isUnlockOpen} onOpenChange={(open) => (open ? setIsUnlockOpen(true) : handleUnlockCancel())}>
+      <Dialog
+        open={isUnlockOpen}
+        onOpenChange={(open) =>
+          open ? setIsUnlockOpen(true) : handleUnlockCancel()
+        }
+      >
         <DialogContent className="w-11/12 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -536,7 +560,9 @@ export function PasswordsPage() {
           </DialogHeader>
           <form onSubmit={handleUnlockSubmit} className="space-y-4">
             <div className="px-6 py-2">
-              <label className="block text-sm text-gray-300 mb-1">Master Password</label>
+              <label className="block text-sm text-gray-300 mb-1">
+                Master Password
+              </label>
               <input
                 type="password"
                 className="w-full rounded-md bg-gray-700 border border-gray-600 px-3 py-2 text-white outline-none focus:ring-2 focus:ring-teal-500"
@@ -550,11 +576,20 @@ export function PasswordsPage() {
               )}
             </div>
             <div className="border-t border-gray-600 flex justify-end items-center gap-4 px-6 py-4">
-              <Button type="button" variant="secondary" onClick={handleUnlockCancel}>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isUnlocking}
+                onClick={handleUnlockCancel}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-teal-600 hover:bg-teal-500 text-white">
-                Unlock
+              <Button
+                type="submit"
+                disabled={isUnlocking}
+                className="bg-teal-600 hover:bg-teal-500 text-white"
+              >
+                {isUnlocking ? 'Unlocking...' : 'Unlock'}
               </Button>
             </div>
           </form>
