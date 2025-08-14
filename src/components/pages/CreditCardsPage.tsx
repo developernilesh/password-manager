@@ -15,7 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCardsGrid";
-import { verifyMasterPassword } from "@/actions/actions";
+import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
+import { useRouter } from "next/navigation";
 
 interface CreditCard {
   id: string;
@@ -49,6 +50,9 @@ export function CreditCardsPage() {
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
 
+  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(null);
+  const router = useRouter();
+
   type SensitiveField = "number" | "cvv";
   type PendingAction =
     | { type: "toggle-visibility"; id: string; field: SensitiveField }
@@ -77,6 +81,15 @@ export function CreditCardsPage() {
     } catch {
       // ignore malformed storage
     }
+  }, []);
+
+  useEffect(() => {
+    // Check if master password is set
+    async function checkMasterPassword() {
+      const hash = await getMasterPasswordHash();
+      setHasMasterPassword(!!hash);
+    }
+    checkMasterPassword();
   }, []);
 
   const filteredCards = useMemo(() => {
@@ -371,6 +384,11 @@ export function CreditCardsPage() {
   };
 
   const openAddModal = () => {
+    if (!hasMasterPassword) {
+      alert("You must set up your master password before adding any credit card.");
+      router.push("/user/dashboard"); // Assuming MasterPasswordSection is on dashboard
+      return;
+    }
     setEditingCard(null);
     reset({
       cardName: "",
@@ -452,11 +470,27 @@ export function CreditCardsPage() {
         <Button
           onClick={openAddModal}
           className="bg-teal-600 hover:bg-teal-500 text-white"
+          disabled={hasMasterPassword === false}
         >
           <FiPlus className="h-5 w-5" />
           Add Card
         </Button>
       </div>
+
+      {/* Show direction if master password not set */}
+      {hasMasterPassword === false && (
+        <div className="bg-yellow-900/60 border border-yellow-700 rounded-lg p-4 text-yellow-300 text-center mb-4">
+          <strong>Set up your master password first!</strong>
+          <div className="mt-2">
+            <Button
+              className="bg-teal-600 hover:bg-teal-500 text-white"
+              onClick={() => router.push("/user/dashboard")}
+            >
+              Go to Master Password Setup
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
@@ -743,6 +777,57 @@ export function CreditCardsPage() {
       </Dialog>
 
       {/* Master Password Unlock Modal */}
+      <Dialog
+        open={isUnlockOpen}
+        onOpenChange={(open) =>
+          open ? setIsUnlockOpen(true) : handleUnlockCancel()
+        }
+      >
+        <DialogContent className="w-11/12 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FiLock className="h-5 w-5" />
+              Enter Master Password
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUnlockSubmit} className="space-y-4">
+            <div className="px-6 py-2">
+              <label className="block text-sm text-gray-300 mb-1">
+                Master Password
+              </label>
+              <input
+                type="password"
+                className="w-full rounded-md bg-gray-700 border border-gray-600 px-3 py-2 text-white outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="Enter master password"
+                value={unlockInput}
+                onChange={(e) => setUnlockInput(e.target.value)}
+                autoFocus
+              />
+              {unlockError && (
+                <p className="text-red-400 text-sm mt-1">{unlockError}</p>
+              )}
+            </div>
+            <div className="border-t border-gray-600 flex justify-end items-center gap-4 px-6 py-4">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isUnlocking}
+                onClick={handleUnlockCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUnlocking}
+                className="bg-teal-600 hover:bg-teal-500 text-white"
+              >
+                {isUnlocking ? "Unlocking..." : "Unlock"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
       <Dialog
         open={isUnlockOpen}
         onOpenChange={(open) =>
