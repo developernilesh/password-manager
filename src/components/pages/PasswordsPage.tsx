@@ -15,7 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable";
-import { verifyMasterPassword } from "@/actions/actions";
+import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
+import { useRouter } from "next/navigation";
 
 interface Password {
   id: string;
@@ -41,6 +42,8 @@ export function PasswordsPage() {
   const [unlockInput, setUnlockInput] = useState("");
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
+  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(null);
+  const router = useRouter();
 
   type PendingAction =
     | { type: "toggle-visibility"; id: string }
@@ -62,6 +65,15 @@ export function PasswordsPage() {
     } catch {
       // ignore malformed storage
     }
+  }, []);
+
+  useEffect(() => {
+    // Check if master password is set
+    async function checkMasterPassword() {
+      const hash = await getMasterPasswordHash();
+      setHasMasterPassword(!!hash);
+    }
+    checkMasterPassword();
   }, []);
 
   const filteredPasswords = useMemo(() => {
@@ -224,7 +236,13 @@ export function PasswordsPage() {
     },
   });
 
+  // Modified openAddModal to check master password
   const openAddModal = () => {
+    if (!hasMasterPassword) {
+      alert("You must set up your master password before adding any password.");
+      router.push("/user/settings"); // Assuming MasterPasswordSection is on dashboard
+      return;
+    }
     setEditingPassword(null);
     reset({
       title: "",
@@ -295,11 +313,27 @@ export function PasswordsPage() {
         <Button
           onClick={openAddModal}
           className="bg-teal-600 hover:bg-teal-500 text-white"
+          disabled={hasMasterPassword === false}
         >
           <FiPlus className="h-5 w-5" />
           Add Password
         </Button>
       </div>
+
+      {/* Show direction if master password not set */}
+      {hasMasterPassword === false && (
+        <div className="bg-yellow-900/60 border border-yellow-700 rounded-lg p-4 text-yellow-300 text-center mb-4">
+          <strong>Set up your master password first!</strong>
+          <div className="mt-2">
+            <Button
+              className="bg-teal-600 hover:bg-teal-500 text-white"
+              onClick={() => router.push("/user/settings")}
+            >
+              Go to Master Password Setup
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Search + Filter */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
