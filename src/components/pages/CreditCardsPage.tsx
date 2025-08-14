@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCardsGrid";
+import { verifyMasterPassword } from "@/actions/actions";
 
 interface CreditCard {
   id: string;
@@ -46,7 +47,7 @@ export function CreditCardsPage() {
   const [isUnlockOpen, setIsUnlockOpen] = useState(false);
   const [unlockInput, setUnlockInput] = useState("");
   const [unlockError, setUnlockError] = useState<string | null>(null);
-  const MASTER_PASSWORD = "Abc@1234"; // constant for now
+  const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
 
   type SensitiveField = "number" | "cvv";
   type PendingAction =
@@ -144,37 +145,49 @@ export function CreditCardsPage() {
     });
   };
 
-  const handleUnlockSubmit = (e: React.FormEvent) => {
+  const handleUnlockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (unlockInput === MASTER_PASSWORD) {
-      setIsUnlocked(true);
-      setIsUnlockOpen(false);
-      setUnlockInput("");
-      setUnlockError(null);
-      if (pendingAction) {
-        if (pendingAction.type === "toggle-visibility") {
-          setVisibleById((prev) => {
-            const current = prev[pendingAction.id] ?? {
-              number: false,
-              cvv: false,
-            };
-            return {
-              ...prev,
-              [pendingAction.id]: {
-                ...current,
-                [pendingAction.field]: !current[pendingAction.field],
-              },
-            };
-          });
-        } else if (pendingAction.type === "copy-sensitive") {
-          copyToClipboard(pendingAction.value);
+    if (!unlockInput) {
+      setUnlockError("Please enter the master password");
+      return;
+    }
+    setIsUnlocking(true);
+    try {
+      const isMatched = await verifyMasterPassword(unlockInput);
+      if (isMatched) {
+        setIsUnlocked(true);
+        setIsUnlockOpen(false);
+        setUnlockInput("");
+        setUnlockError(null);
+        if (pendingAction) {
+          if (pendingAction.type === "toggle-visibility") {
+            setVisibleById((prev) => {
+              const current = prev[pendingAction.id] ?? {
+                number: false,
+                cvv: false,
+              };
+              return {
+                ...prev,
+                [pendingAction.id]: {
+                  ...current,
+                  [pendingAction.field]: !current[pendingAction.field],
+                },
+              };
+            });
+          } else if (pendingAction.type === "copy-sensitive") {
+            copyToClipboard(pendingAction.value);
+          }
+          pendingResolveRef.current?.(true);
+          pendingResolveRef.current = null;
+          setPendingAction(null);
         }
-        pendingResolveRef.current?.(true);
-        pendingResolveRef.current = null;
-        setPendingAction(null);
+      } else {
+        setUnlockError("Incorrect master password");
       }
-    } else {
-      setUnlockError("Incorrect master password");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUnlocking(false);
     }
   };
 
@@ -764,15 +777,17 @@ export function CreditCardsPage() {
               <Button
                 type="button"
                 variant="secondary"
+                disabled={isUnlocking}
                 onClick={handleUnlockCancel}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
+                disabled={isUnlocking}
                 className="bg-teal-600 hover:bg-teal-500 text-white"
               >
-                Unlock
+                {isUnlocking ? "Unlocking..." : "Unlock"}
               </Button>
             </div>
           </form>
