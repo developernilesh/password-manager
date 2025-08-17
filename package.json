@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "both": "concurrently \"npm run server\" \"npm run frontend\"",
+    "server": "cd server && npm run dev",
+    "frontend": "cd src && npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -34,6 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
     "tailwindcss": "^4",
