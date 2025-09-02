@@ -1,9 +1,11 @@
-import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 dotenv.config();
 
 import type { Request, Response } from "express";
 import { PasswordsModel } from "../models/passwords.js";
+import { Encryption } from "../utils/encryption.js";
+
+const encryption = new Encryption();
 
 export const addPassword = async (req: Request, res: Response) => {
   try {
@@ -16,13 +18,19 @@ export const addPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const encryptionKey = Buffer.from('placeholder-key-32-bytes-long', 'utf8');
+
+    // Encrypt sensitive data
+    const iv = encryption.generateIV();
+    const encryptedTitle = encryption.encrypt(title, encryptionKey, iv);
+    const encryptedUsername = encryption.encrypt(username, encryptionKey, iv);
+    const encryptedPassword = encryption.encrypt(password, encryptionKey, iv);
+    const encryptedWebsite = url ? encryption.encrypt(url, encryptionKey, iv) : null;
 
     const isExisting = await PasswordsModel.findOne({
       userid,
       url,
       username,
-      password:hashedPassword,
     });
 
     if (isExisting) {
@@ -37,7 +45,7 @@ export const addPassword = async (req: Request, res: Response) => {
       title,
       url,
       username,
-      password: hashedPassword,
+      password,
       category,
     });
 
