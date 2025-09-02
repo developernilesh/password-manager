@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CreditCardsPage } from "@/components/pages/CreditCardsPage";
 import { PageLayout } from "@/components/layout/PageLayout";
 import LoadingSpinner from "@/components/layout/LoadingSpinner";
@@ -13,21 +13,26 @@ export default function UserCreditCards() {
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push("/");
+      // Using a small timeout to ensure router is ready
+      const timer = setTimeout(() => {
+        router.push("/");
+      }, 100);
+      // clearing the timeout on unmount
+      return () => clearTimeout(timer);
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, router]);
 
-  // Show loading state while Clerk is loading
+  // loading state while Clerk is loading
   if (!isLoaded) {
     return <LoadingSpinner message="Loading..." />;
   }
 
-  // If user is not signed in, show loading while redirecting
+  // loading while redirecting, if user is not signed in
   if (isSignedIn) {
     return <LoadingSpinner message="Redirecting to home..." />;
   }
 
-  // If user is signed in, show dashboard
+  // If user is signed in, showing credit cards page
   return (
     <PageLayout>
       <CreditCardsPage />

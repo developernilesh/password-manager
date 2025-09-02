@@ -2,52 +2,37 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DashboardPage } from "@/components/pages/DashboardPage";
 import { PageLayout } from "@/components/layout/PageLayout";
+import LoadingSpinner from "@/components/layout/LoadingSpinner";
 
 export default function UserDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      setShouldRedirect(true);
+      // Using a small timeout to ensure router is ready
+      const timer = setTimeout(() => {
+        router.push("/");
+      }, 100);
+      // clearing the timeout on unmount
+      return () => clearTimeout(timer);
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, router]);
 
-  useEffect(() => {
-    if (shouldRedirect) {
-      router.push("/");
-    }
-  }, [shouldRedirect, router]);
-
-  // Show loading state while Clerk is loading
+  // loading state while Clerk is loading
   if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading..." />;
   }
 
-  // If user is not signed in, show loading while redirecting
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Redirecting to home...</p>
-        </div>
-      </div>
-    );
+  // loading while redirecting, if user is not signed in
+  if (isSignedIn) {
+    return <LoadingSpinner message="Redirecting to home..." />;
   }
 
-  // If user is signed in, show dashboard
+  // If user is signed in, showing dashboard
   return (
     <PageLayout>
       <DashboardPage />
