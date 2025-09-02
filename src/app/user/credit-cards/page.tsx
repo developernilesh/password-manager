@@ -28,7 +28,7 @@ export default function UserCreditCards() {
   }
 
   // loading while redirecting, if user is not signed in
-  if (isSignedIn) {
+  if (!isSignedIn) {
     return <LoadingSpinner message="Redirecting to home..." />;
   }
 
