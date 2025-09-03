@@ -13,13 +13,9 @@ interface EncryptedData {
 
 export class Encryption {
   private algorithm: string;
-  private keyLength: number;
-  private iterations: number;
 
   constructor() {
-    this.algorithm = process.env.ENCRYPTION_ALGORITHM || "aes-256-gcm";
-    this.keyLength = parseInt(process.env.KEY_DERIVATION_KEY_LENGTH || "32", 10);
-    this.iterations = parseInt(process.env.KEY_DERIVATION_ITERATIONS || "100000", 10);
+    this.algorithm = process.env.ENCRYPTION_ALGORITHM || "AES-256-GCM";
   }
 
   /**
@@ -53,8 +49,8 @@ export class Encryption {
         algorithm: this.algorithm,
         version: "1.0",
       };
-    } catch (error: any) {
-      throw new Error(`Encryption failed: ${error.message}`);
+    } catch (error) {
+      throw new Error(`Encryption failed: ${(error as { message: string }).message}`);
     }
   }
 
@@ -75,8 +71,8 @@ export class Encryption {
       decrypted += decipher.final("utf8");
 
       return decrypted;
-    } catch (error: any) {
-      throw new Error(`Decryption failed: ${error.message}`);
+    } catch (error) {
+      throw new Error(`Decryption failed: ${(error as { message: string }).message}`);
     }
   }
 }
