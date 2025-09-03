@@ -1,6 +1,6 @@
 import express from "express";
 import connectDB from "./config/database.js";
-import { addPassword } from "./controllers/passwords.js";
+import { addPassword, getPasswords } from "./controllers/passwords.js";
 
 const app = express();
 connectDB();
@@ -8,6 +8,7 @@ connectDB();
 app.use(express.json());
 
 app.post("/api/v1/add-password", addPassword);
+app.get("/api/v1/view-passwords/:userid", getPasswords);
 
 
 app.get("/", (req, res) => {
