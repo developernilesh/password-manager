@@ -44,11 +44,11 @@ export function Sidebar() {
   const { user } = useUser();
   const [clickedPath, setClickedPath] = useState<string | null>(null);
 
-  const handleClick = (path: string) => {
-    setClickedPath(path);
-    // Reset after a brief moment to allow navigation
-    setTimeout(() => setClickedPath(null), 100);
-  };
+  // const handleClick = (path: string) => {
+  //   setClickedPath(path);
+  //   // Reset after a brief moment to allow navigation
+  //   setTimeout(() => setClickedPath(null), 100);
+  // };
 
   return (
     <div className="hidden lg:flex md:w-80 lg:w-80 flex-col h-full bg-gray-900 border-r border-gray-700">
@@ -57,14 +57,14 @@ export function Sidebar() {
         <nav className="flex-1 p-6">
           <div className="space-y-2">
             {menuItems.map((item) => {
-              const isActive = pathname === item.path || clickedPath === item.path;
+              const isActive = pathname === item.path;
               
               return (
                 <Link
                   key={item.path}
                   href={item.path}
                   prefetch={true}
-                  onClick={() => handleClick(item.path)}
+                  // onClick={() => handleClick(item.path)}
                   className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-100 ${
                     isActive
                       ? "bg-teal-500/20 text-teal-400 border border-teal-500/30"
