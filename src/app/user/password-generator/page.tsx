@@ -7,7 +7,7 @@ import { PasswordGeneratorPage } from "@/components/pages/PasswordGeneratorPage"
 import { PageLayout } from "@/components/layout/PageLayout";
 import LoadingSpinner from "@/components/layout/LoadingSpinner";
 
-export default function PasswordGenerator() {
+export default function UserPasswordGenerator() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
 
