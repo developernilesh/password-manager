@@ -1,3 +1,4 @@
+// src/models/passwords.ts
 import { model, Schema } from "mongoose";
 
 const passwordSchema = new Schema(
@@ -21,37 +22,39 @@ const passwordSchema = new Schema(
       required: true,
       trim: true,
     },
-    password: {
+    // This will now store the client-side encrypted data
+    encryptedData: {
       type: String,
       required: true,
     },
-    category: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    encryption: {
-      algorithm: {
-        type: String,
-        required: true,
-        default: "AES-256-GCM",
-        enum: ["AES-256-GCM"],
-      },
+    encryptionParams: {
       iv: {
         type: String,
         required: true,
-        length: 32, // 16 bytes as hex
       },
       authTag: {
         type: String,
         required: true,
-        length: 32, // 16 bytes as hex
+      },
+      salt: {
+        type: String,
+        required: true,
+      },
+      algorithm: {
+        type: String,
+        required: true,
+        default: "AES-256-GCM",
       },
       version: {
         type: String,
         required: true,
         default: "1.0",
       },
+    },
+    category: {
+      type: String,
+      required: true,
+      trim: true,
     },
   },
   { timestamps: true }
