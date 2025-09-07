@@ -14,7 +14,6 @@ export const addPassword = async (req: Request, res: Response) => {
       title,
       url,
       username,
-      password,
       category,
       encryptedData,
       encryptionParams,
@@ -25,7 +24,6 @@ export const addPassword = async (req: Request, res: Response) => {
       !title ||
       !url ||
       !username ||
-      !password ||
       !category ||
       !encryptedData ||
       !encryptionParams
