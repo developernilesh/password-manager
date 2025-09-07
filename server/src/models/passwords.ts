@@ -27,12 +27,9 @@ const passwordSchema = new Schema(
       type: String,
       required: true,
     },
+    // In your Password model
     encryptionParams: {
       iv: {
-        type: String,
-        required: true,
-      },
-      authTag: {
         type: String,
         required: true,
       },
@@ -43,7 +40,7 @@ const passwordSchema = new Schema(
       algorithm: {
         type: String,
         required: true,
-        default: "AES-256-GCM",
+        default: "AES-256-CBC",
       },
       version: {
         type: String,
