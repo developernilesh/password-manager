@@ -18,6 +18,9 @@ import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable"
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { encryptDataWithCryptoJS } from "@/lib/encryption-client";
+import { apiClient } from "@/lib/api-client";
+import { useUser } from "@clerk/nextjs";
 
 interface Password {
   id: string;
@@ -48,6 +51,7 @@ export function PasswordsPage() {
     null
   );
   const router = useRouter();
+  const { user } = useUser();
 
   type PendingAction =
     | { type: "toggle-visibility"; id: string }
@@ -158,7 +162,7 @@ export function PasswordsPage() {
       if (isMatched) {
         setIsUnlocked(true);
         setIsUnlockOpen(false);
-        setUnlockInput("");
+        // setUnlockInput("");
         setUnlockError(null);
         if (pendingAction) {
           if (pendingAction.type === "toggle-visibility") {
@@ -185,7 +189,7 @@ export function PasswordsPage() {
 
   const handleUnlockCancel = () => {
     setIsUnlockOpen(false);
-    setUnlockInput("");
+    if (!isUnlocked) setUnlockInput("");
     setUnlockError(null);
     pendingResolveRef.current?.(false);
     pendingResolveRef.current = null;
@@ -278,33 +282,50 @@ export function PasswordsPage() {
     setIsModalOpen(true);
   };
 
-  const onSubmit: SubmitHandler<PasswordFormOutput> = (values) => {
+  const onSubmit: SubmitHandler<PasswordFormOutput> = async (values) => {
     if (editingPassword) {
-      const updated: Password = {
-        ...editingPassword,
-        title: values.title,
-        username: values.username,
-        password: values.password,
-        url: values.url,
-        category: values.category,
-      };
-      const next = passwords.map((p) =>
-        p.id === editingPassword.id ? updated : p
-      );
-      savePasswords(next);
+      // const updated: Password = {
+      //   ...editingPassword,
+      //   title: values.title,
+      //   username: values.username,
+      //   password: values.password,
+      //   url: values.url,
+      //   category: values.category,
+      // };
+      // const next = passwords.map((p) =>
+      //   p.id === editingPassword.id ? updated : p
+      // );
+      // savePasswords(next);
     } else {
-      const newPwd: Password = {
-        id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
-        title: values.title,
-        username: values.username,
-        password: values.password,
-        url: values.url ?? "",
-        category: values.category,
-        createdAt: new Date().toISOString(),
-      };
-      savePasswords([newPwd, ...passwords]);
+      if (!isUnlocked) {
+        setIsUnlockOpen(true);
+        return;
+      }
+      const { encryptedData, iv, salt } = encryptDataWithCryptoJS(
+        values.password,
+        unlockInput
+      );
+      try {
+        const response = await apiClient.post("/add-password", {
+          userid: (user as { id: string }).id,
+          username: values.username,
+          title: values.title,
+          url: values.url,
+          category: values.category,
+          encryptedData,
+          encryptionParams: {
+            iv,
+            salt,
+            algorithm: "AES-256-CBC",
+            version: "1.0",
+          },
+        });
+        console.log(response)
+      } catch (error) {
+        console.error("Error adding password:", error);
+      }
     }
-    setIsModalOpen(false);
+    // setIsModalOpen(false);
   };
 
   const handleDelete = (id: string) => {
@@ -321,6 +342,7 @@ export function PasswordsPage() {
           <p className="text-gray-400">
             Manage and organize your passwords securely
           </p>
+          <p>Master Password: {unlockInput}</p>
         </div>
         <Button
           onClick={openAddModal}
