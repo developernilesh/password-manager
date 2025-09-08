@@ -23,7 +23,7 @@ import { apiClient } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
 
 interface Password {
-  id: string;
+  _id: string;
   title: string;
   username: string;
   password: string;
@@ -62,19 +62,7 @@ export function PasswordsPage() {
   const pendingResolveRef = useRef<((ok: boolean) => void) | null>(null);
 
   const categories = ["all", "social", "work", "finance", "shopping", "other"];
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("passwords");
-      if (stored) {
-        const parsed: Password[] = JSON.parse(stored);
-        setPasswords(parsed);
-      }
-    } catch {
-      // ignore malformed storage
-    }
-  }, []);
-
+  
   useEffect(() => {
     // Check if master password is set
     async function checkMasterPassword() {
@@ -89,6 +77,7 @@ export function PasswordsPage() {
       }
     }
     checkMasterPassword();
+    handleGetPasswords();
   }, []);
 
   const filteredPasswords = useMemo(() => {
@@ -196,15 +185,6 @@ export function PasswordsPage() {
     setPendingAction(null);
   };
 
-  const savePasswords = (next: Password[]) => {
-    setPasswords(next);
-    try {
-      localStorage.setItem("passwords", JSON.stringify(next));
-    } catch {
-      // ignore quota errors
-    }
-  };
-
   const isValidUrl = (value: string) => {
     try {
       new URL(value);
@@ -292,10 +272,6 @@ export function PasswordsPage() {
       //   url: values.url,
       //   category: values.category,
       // };
-      // const next = passwords.map((p) =>
-      //   p.id === editingPassword.id ? updated : p
-      // );
-      // savePasswords(next);
     } else {
       if (!isUnlocked) {
         setIsUnlockOpen(true);
@@ -306,7 +282,7 @@ export function PasswordsPage() {
         unlockInput
       );
       try {
-        const response = await apiClient.post("/add-password", {
+        const { data } = await apiClient.post("/add-password", {
           userid: (user as { id: string }).id,
           username: values.username,
           title: values.title,
@@ -320,17 +296,30 @@ export function PasswordsPage() {
             version: "1.0",
           },
         });
-        console.log(response)
+        if (data.success === true) {
+          toast.success((data as { message: string }).message);
+          setIsModalOpen(false);
+        }
       } catch (error) {
-        console.error("Error adding password:", error);
+        toast.error((error as { message: string }).message);
       }
     }
-    // setIsModalOpen(false);
+  };
+
+  const handleGetPasswords = async () => {
+    try {
+      const response = await apiClient.get(
+        `/view-passwords/${(user as { id: string }).id}`
+      );
+      const { data: encryptedPasswords } = response.data;
+      setPasswords(encryptedPasswords);
+    } catch (error) {
+      console.error((error as { message: string }).message);
+    }
   };
 
   const handleDelete = (id: string) => {
-    const next = passwords.filter((p) => p.id !== id);
-    savePasswords(next);
+    console.log(id)
   };
 
   return (
