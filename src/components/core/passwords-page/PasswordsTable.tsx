@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FiCopy, FiEdit, FiGlobe, FiTrash2, FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
 
 export interface PasswordRow {
-  id: string;
+  _id: string;
   title: string;
   username: string;
   password: string;
@@ -26,6 +26,11 @@ interface PasswordsTableProps {
 export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, onDelete, visibleById, onToggleVisibility }: PasswordsTableProps) {
   const [copiedByKey, setCopiedByKey] = useState<Record<string, boolean>>({});
   const copyTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    console.log("data",data)
+  }, []);
+  
 
   const markCopied = (key: string) => {
     if (copyTimeoutsRef.current[key]) {
@@ -62,7 +67,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
   };
 
   const handleCopy = async (field: "username" | "password", row: PasswordRow) => {
-    const key = `${row.id}-${field}`;
+    const key = `${row._id}-${field}`;
     const ok = await Promise.resolve(
       field === "username" ? onCopyUsername(row.username) : onCopyPassword(row.password)
     );
@@ -109,10 +114,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
         </thead>
         <tbody className="[&_tr:last-child]:border-0 divide-y divide-gray-700">
           {data && data.length > 0 ? (
-            data.map((row) => {
-              const isVisible = !!visibleById[row.id];
+            data.map((row, index) => {
+              const isVisible = !!visibleById[row._id];
               return (
-                <tr key={row.id} className="border-b transition-colors hover:bg-gray-700/30">
+                <tr key={row._id} className="border-b transition-colors hover:bg-gray-700/30">
                   <td className="p-3 sm:p-4 md:p-6 align-middle">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center shrink-0">
@@ -144,10 +149,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                         <button
                           onClick={() => handleCopy("username", row)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
-                          aria-label={copiedByKey[`${row.id}-username`] ? "Copied" : "Copy username"}
-                          title={copiedByKey[`${row.id}-username`] ? "Copied" : "Copy username"}
+                          aria-label={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
+                          title={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
                         >
-                          {copiedByKey[`${row.id}-username`] ? (
+                          {copiedByKey[`${row._id}-username`] ? (
                             <FiCheck className="h-4 w-4 text-green-400" />
                           ) : (
                             <FiCopy className="h-4 w-4 text-gray-400" />
@@ -157,7 +162,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-white truncate max-w-[180px]">{isVisible ? row.password : "••••••••"}</span>
                         <button
-                          onClick={() => onToggleVisibility(row.id)}
+                          onClick={() => onToggleVisibility(row._id)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
                           aria-label={isVisible ? "Hide password" : "Show password"}
                         >
@@ -170,10 +175,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                         <button
                           onClick={() => handleCopy("password", row)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
-                          aria-label={copiedByKey[`${row.id}-password`] ? "Copied" : "Copy password"}
-                          title={copiedByKey[`${row.id}-password`] ? "Copied" : "Copy password"}
+                          aria-label={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
+                          title={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
                         >
-                          {copiedByKey[`${row.id}-password`] ? (
+                          {copiedByKey[`${row._id}-password`] ? (
                             <FiCheck className="h-4 w-4 text-green-400" />
                           ) : (
                             <FiCopy className="h-4 w-4 text-gray-400" />
@@ -188,10 +193,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       <button
                         onClick={() => handleCopy("username", row)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
-                        aria-label={copiedByKey[`${row.id}-username`] ? "Copied" : "Copy username"}
-                        title={copiedByKey[`${row.id}-username`] ? "Copied" : "Copy username"}
+                        aria-label={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
+                        title={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
                       >
-                        {copiedByKey[`${row.id}-username`] ? (
+                        {copiedByKey[`${row._id}-username`] ? (
                           <FiCheck className="h-4 w-4 text-green-400" />
                         ) : (
                           <FiCopy className="h-4 w-4 text-gray-400" />
@@ -203,7 +208,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-white truncate max-w-[140px] sm:max-w-none">{isVisible ? row.password : "••••••••"}</span>
                       <button
-                        onClick={() => onToggleVisibility(row.id)}
+                        onClick={() => onToggleVisibility(row._id)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
                         aria-label={isVisible ? "Hide password" : "Show password"}
                       >
@@ -216,10 +221,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       <button
                         onClick={() => handleCopy("password", row)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
-                        aria-label={copiedByKey[`${row.id}-password`] ? "Copied" : "Copy password"}
-                        title={copiedByKey[`${row.id}-password`] ? "Copied" : "Copy password"}
+                        aria-label={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
+                        title={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
                       >
-                        {copiedByKey[`${row.id}-password`] ? (
+                        {copiedByKey[`${row._id}-password`] ? (
                           <FiCheck className="h-4 w-4 text-green-400" />
                         ) : (
                           <FiCopy className="h-4 w-4 text-gray-400" />
@@ -243,8 +248,8 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       </button>
                       <button
                         className="p-2 hover:bg-gray-600 rounded transition-colors"
-                        onClick={() => onDelete(row.id)}
-                        aria-label="Delete password"
+                        onClick={() => onDelete(row._id)}
+                        aria-label="Delete password"  
                       >
                         <FiTrash2 className="h-4 w-4 text-red-400" />
                       </button>
