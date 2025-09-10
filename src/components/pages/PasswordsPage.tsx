@@ -26,7 +26,13 @@ interface Password {
   _id: string;
   title: string;
   username: string;
-  password: string;
+  encryptedData: string;
+  encryptionParams: {
+    iv: string;
+    salt: string;
+    algorithm: string;
+    version: string;
+  };
   url: string;
   category: string;
   createdAt: string;
@@ -62,7 +68,7 @@ export function PasswordsPage() {
   const pendingResolveRef = useRef<((ok: boolean) => void) | null>(null);
 
   const categories = ["all", "social", "work", "finance", "shopping", "other"];
-  
+
   useEffect(() => {
     // Check if master password is set
     async function checkMasterPassword() {
@@ -123,6 +129,7 @@ export function PasswordsPage() {
   };
 
   const requestUnlock = (action: PendingAction): Promise<boolean> => {
+    console.log("vbi", visibleById);
     if (isUnlocked) {
       if (action.type === "toggle-visibility") {
         setVisibleById((prev) => ({ ...prev, [action.id]: !prev[action.id] }));
@@ -255,7 +262,7 @@ export function PasswordsPage() {
     reset({
       title: pwd.title,
       username: pwd.username,
-      password: pwd.password,
+      password: pwd.encryptedData,
       url: pwd.url,
       category: pwd.category as PasswordFormInput["category"],
     });
@@ -319,7 +326,7 @@ export function PasswordsPage() {
   };
 
   const handleDelete = (id: string) => {
-    console.log(id)
+    console.log(id);
   };
 
   return (
