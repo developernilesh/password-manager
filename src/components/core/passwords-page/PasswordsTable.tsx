@@ -7,7 +7,13 @@ export interface PasswordRow {
   _id: string;
   title: string;
   username: string;
-  password: string;
+  encryptedData: string;
+  encryptionParams: {
+    iv: string,
+    salt: string,
+    algorithm: string,
+    version: string,
+  },
   url: string;
   category: string;
   createdAt: string;
@@ -69,7 +75,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
   const handleCopy = async (field: "username" | "password", row: PasswordRow) => {
     const key = `${row._id}-${field}`;
     const ok = await Promise.resolve(
-      field === "username" ? onCopyUsername(row.username) : onCopyPassword(row.password)
+      field === "username" ? onCopyUsername(row.username) : onCopyPassword(row.encryptedData)
     );
     if (ok) {
       markCopied(key);
@@ -160,7 +166,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                         </button>
                       </div>
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-white truncate max-w-[180px]">{isVisible ? row.password : "••••••••"}</span>
+                        <span className="text-white truncate max-w-[180px]">{isVisible ? row.encryptedData : "••••••••"}</span>
                         <button
                           onClick={() => onToggleVisibility(row._id)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
@@ -206,7 +212,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                   </td>
                   <td className="p-3 sm:p-4 md:p-6 align-middle hidden sm:table-cell">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white truncate max-w-[140px] sm:max-w-none">{isVisible ? row.password : "••••••••"}</span>
+                      <span className="text-white truncate max-w-[140px] sm:max-w-none">{isVisible ? row.encryptedData : "••••••••"}</span>
                       <button
                         onClick={() => onToggleVisibility(row._id)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
