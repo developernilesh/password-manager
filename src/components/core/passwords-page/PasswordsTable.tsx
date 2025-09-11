@@ -1,19 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FiCopy, FiEdit, FiGlobe, FiTrash2, FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
+import {
+  FiCopy,
+  FiEdit,
+  FiGlobe,
+  FiTrash2,
+  FiEye,
+  FiEyeOff,
+  FiCheck,
+} from "react-icons/fi";
+
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  version: string;
+}
 
 export interface PasswordRow {
   _id: string;
   title: string;
   username: string;
   encryptedData: string;
-  encryptionParams: {
-    iv: string,
-    salt: string,
-    algorithm: string,
-    version: string,
-  },
+  encryptionParams: encryptionParams;
   url: string;
   category: string;
   createdAt: string;
@@ -22,22 +32,32 @@ export interface PasswordRow {
 interface PasswordsTableProps {
   data: PasswordRow[];
   onCopyUsername: (text: string) => Promise<boolean> | boolean;
-  onCopyPassword: (text: string) => Promise<boolean> | boolean;
+  onCopyPassword: (data: PasswordRow) => Promise<boolean> | boolean;
   onEdit: (row: PasswordRow) => void;
   onDelete: (id: string) => void;
   visibleById: Record<string, boolean>;
   onToggleVisibility: (id: string) => Promise<boolean> | boolean;
+  getDecryptedData: (
+    encryptedData: string,
+    encryptionParams: encryptionParams
+  ) => string | any;
 }
 
-export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, onDelete, visibleById, onToggleVisibility }: PasswordsTableProps) {
+export function PasswordsTable({
+  data,
+  onCopyUsername,
+  onCopyPassword,
+  onEdit,
+  onDelete,
+  visibleById,
+  onToggleVisibility,
+  getDecryptedData,
+}: PasswordsTableProps) {
   const [copiedByKey, setCopiedByKey] = useState<Record<string, boolean>>({});
-  const copyTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  useEffect(() => {
-    console.log("data",data)
-  }, []);
+  const copyTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {}
+  );
   
-
   const markCopied = (key: string) => {
     if (copyTimeoutsRef.current[key]) {
       clearTimeout(copyTimeoutsRef.current[key]);
@@ -52,7 +72,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
       delete copyTimeoutsRef.current[key];
     }, 1500);
   };
-  
+
   const formatUrlForHref = (url: string): string => {
     if (!url) return "#";
     try {
@@ -72,10 +92,13 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
     }
   };
 
-  const handleCopy = async (field: "username" | "password", row: PasswordRow) => {
+  const handleCopy = async (
+    field: "username" | "password",
+    row: PasswordRow
+  ) => {
     const key = `${row._id}-${field}`;
     const ok = await Promise.resolve(
-      field === "username" ? onCopyUsername(row.username) : onCopyPassword(row.encryptedData)
+      field === "username" ? onCopyUsername(row.username) : onCopyPassword(row)
     );
     if (ok) {
       markCopied(key);
@@ -89,7 +112,8 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
   }, []);
 
   const getCategoryBadgeClasses = (category: string) => {
-    const base = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border";
+    const base =
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border";
     switch (category) {
       case "social":
         return `${base} bg-blue-500/10 text-blue-400 border-blue-500/30`;
@@ -110,12 +134,24 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
       <table className="w-full caption-bottom text-sm">
         <thead className="[&_tr]:border-b bg-gray-700/50">
           <tr className="border-b transition-colors hover:bg-gray-700/30">
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300">Title</th>
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 sm:hidden">Credentials</th>
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden sm:table-cell">Username</th>
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden sm:table-cell">Password</th>
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden xl:table-cell">Category</th>
-            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300">Actions</th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300">
+              Title
+            </th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 sm:hidden">
+              Credentials
+            </th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden sm:table-cell">
+              Username
+            </th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden sm:table-cell">
+              Password
+            </th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300 hidden xl:table-cell">
+              Category
+            </th>
+            <th className="h-12 px-3 sm:px-4 md:px-6 text-left align-middle text-sm font-medium text-gray-300">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="[&_tr:last-child]:border-0 divide-y divide-gray-700">
@@ -123,7 +159,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
             data.map((row, index) => {
               const isVisible = !!visibleById[row._id];
               return (
-                <tr key={row._id} className="border-b transition-colors hover:bg-gray-700/30">
+                <tr
+                  key={row._id}
+                  className="border-b transition-colors hover:bg-gray-700/30"
+                >
                   <td className="p-3 sm:p-4 md:p-6 align-middle">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center shrink-0">
@@ -151,12 +190,22 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                   <td className="p-3 sm:p-4 md:p-6 align-middle sm:hidden">
                     <div className="flex flex-col gap-2 min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-white truncate max-w-[180px]">{row.username}</span>
+                        <span className="text-white truncate max-w-[180px]">
+                          {row.username}
+                        </span>
                         <button
                           onClick={() => handleCopy("username", row)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
-                          aria-label={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
-                          title={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
+                          aria-label={
+                            copiedByKey[`${row._id}-username`]
+                              ? "Copied"
+                              : "Copy username"
+                          }
+                          title={
+                            copiedByKey[`${row._id}-username`]
+                              ? "Copied"
+                              : "Copy username"
+                          }
                         >
                           {copiedByKey[`${row._id}-username`] ? (
                             <FiCheck className="h-4 w-4 text-green-400" />
@@ -166,11 +215,20 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                         </button>
                       </div>
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-white truncate max-w-[180px]">{isVisible ? row.encryptedData : "••••••••"}</span>
+                        <span className="text-white truncate max-w-[180px]">
+                          {isVisible
+                            ? getDecryptedData(
+                                row.encryptedData,
+                                row.encryptionParams
+                              )
+                            : "••••••••"}
+                        </span>
                         <button
                           onClick={() => onToggleVisibility(row._id)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
-                          aria-label={isVisible ? "Hide password" : "Show password"}
+                          aria-label={
+                            isVisible ? "Hide password" : "Show password"
+                          }
                         >
                           {isVisible ? (
                             <FiEyeOff className="h-4 w-4 text-gray-400" />
@@ -181,8 +239,16 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                         <button
                           onClick={() => handleCopy("password", row)}
                           className="p-1 hover:bg-gray-600 rounded transition-colors"
-                          aria-label={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
-                          title={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
+                          aria-label={
+                            copiedByKey[`${row._id}-password`]
+                              ? "Copied"
+                              : "Copy password"
+                          }
+                          title={
+                            copiedByKey[`${row._id}-password`]
+                              ? "Copied"
+                              : "Copy password"
+                          }
                         >
                           {copiedByKey[`${row._id}-password`] ? (
                             <FiCheck className="h-4 w-4 text-green-400" />
@@ -195,12 +261,22 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                   </td>
                   <td className="p-3 sm:p-4 md:p-6 align-middle hidden sm:table-cell">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white truncate max-w-[140px] sm:max-w-none">{row.username}</span>
+                      <span className="text-white truncate max-w-[140px] sm:max-w-none">
+                        {row.username}
+                      </span>
                       <button
                         onClick={() => handleCopy("username", row)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
-                        aria-label={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
-                        title={copiedByKey[`${row._id}-username`] ? "Copied" : "Copy username"}
+                        aria-label={
+                          copiedByKey[`${row._id}-username`]
+                            ? "Copied"
+                            : "Copy username"
+                        }
+                        title={
+                          copiedByKey[`${row._id}-username`]
+                            ? "Copied"
+                            : "Copy username"
+                        }
                       >
                         {copiedByKey[`${row._id}-username`] ? (
                           <FiCheck className="h-4 w-4 text-green-400" />
@@ -212,11 +288,20 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                   </td>
                   <td className="p-3 sm:p-4 md:p-6 align-middle hidden sm:table-cell">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white truncate max-w-[140px] sm:max-w-none">{isVisible ? row.encryptedData : "••••••••"}</span>
+                      <span className="text-white truncate max-w-[140px] sm:max-w-none">
+                        {isVisible
+                          ? getDecryptedData(
+                              row.encryptedData,
+                              row.encryptionParams
+                            )
+                          : "••••••••"}
+                      </span>
                       <button
                         onClick={() => onToggleVisibility(row._id)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
-                        aria-label={isVisible ? "Hide password" : "Show password"}
+                        aria-label={
+                          isVisible ? "Hide password" : "Show password"
+                        }
                       >
                         {isVisible ? (
                           <FiEyeOff className="h-4 w-4 text-gray-400" />
@@ -227,8 +312,16 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       <button
                         onClick={() => handleCopy("password", row)}
                         className="p-1 hover:bg-gray-600 rounded transition-colors"
-                        aria-label={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
-                        title={copiedByKey[`${row._id}-password`] ? "Copied" : "Copy password"}
+                        aria-label={
+                          copiedByKey[`${row._id}-password`]
+                            ? "Copied"
+                            : "Copy password"
+                        }
+                        title={
+                          copiedByKey[`${row._id}-password`]
+                            ? "Copied"
+                            : "Copy password"
+                        }
                       >
                         {copiedByKey[`${row._id}-password`] ? (
                           <FiCheck className="h-4 w-4 text-green-400" />
@@ -240,7 +333,8 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                   </td>
                   <td className="p-3 sm:p-4 md:p-6 align-middle hidden xl:table-cell">
                     <span className={getCategoryBadgeClasses(row.category)}>
-                      {row.category.charAt(0).toUpperCase() + row.category.slice(1)}
+                      {row.category.charAt(0).toUpperCase() +
+                        row.category.slice(1)}
                     </span>
                   </td>
                   <td className="p-3 sm:p-4 md:p-6 align-middle">
@@ -255,7 +349,7 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
                       <button
                         className="p-2 hover:bg-gray-600 rounded transition-colors"
                         onClick={() => onDelete(row._id)}
-                        aria-label="Delete password"  
+                        aria-label="Delete password"
                       >
                         <FiTrash2 className="h-4 w-4 text-red-400" />
                       </button>
@@ -266,7 +360,10 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
             })
           ) : (
             <tr>
-              <td colSpan={NUM_COLUMNS} className="h-24 text-center p-3 sm:p-4 md:p-6 align-middle">
+              <td
+                colSpan={NUM_COLUMNS}
+                className="h-24 text-center p-3 sm:p-4 md:p-6 align-middle"
+              >
                 No results.
               </td>
             </tr>
@@ -276,5 +373,3 @@ export function PasswordsTable({ data, onCopyUsername, onCopyPassword, onEdit, o
     </div>
   );
 }
-
-
