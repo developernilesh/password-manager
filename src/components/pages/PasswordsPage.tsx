@@ -18,21 +18,26 @@ import { PasswordsTable } from "@/components/core/passwords-page/PasswordsTable"
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { encryptDataWithCryptoJS } from "@/lib/encryption-client";
+import {
+  decryptDataWithCryptoJS,
+  encryptDataWithCryptoJS,
+} from "@/lib/encryption-client";
 import { apiClient } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
+
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  version: string;
+}
 
 interface Password {
   _id: string;
   title: string;
   username: string;
   encryptedData: string;
-  encryptionParams: {
-    iv: string;
-    salt: string;
-    algorithm: string;
-    version: string;
-  };
+  encryptionParams: encryptionParams;
   url: string;
   category: string;
   createdAt: string;
@@ -61,7 +66,7 @@ export function PasswordsPage() {
 
   type PendingAction =
     | { type: "toggle-visibility"; id: string }
-    | { type: "copy-password"; value: string };
+    | { type: "copy-password"; value: Password };
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null
   );
@@ -129,12 +134,15 @@ export function PasswordsPage() {
   };
 
   const requestUnlock = (action: PendingAction): Promise<boolean> => {
-    console.log("vbi", visibleById);
     if (isUnlocked) {
       if (action.type === "toggle-visibility") {
         setVisibleById((prev) => ({ ...prev, [action.id]: !prev[action.id] }));
       } else if (action.type === "copy-password") {
-        copyToClipboard(action.value);
+        const valueToCopy = getDecryptedData(
+          action.value.encryptedData,
+          action.value.encryptionParams
+        );
+        copyToClipboard(valueToCopy as string);
       }
       return Promise.resolve(true);
     }
@@ -167,7 +175,11 @@ export function PasswordsPage() {
               [pendingAction.id]: !prev[pendingAction.id],
             }));
           } else if (pendingAction.type === "copy-password") {
-            copyToClipboard(pendingAction.value);
+            const valueToCopy = getDecryptedData(
+              pendingAction.value.encryptedData,
+              pendingAction.value.encryptionParams
+            );
+            copyToClipboard(valueToCopy as string);
           }
           pendingResolveRef.current?.(true);
           pendingResolveRef.current = null;
@@ -325,6 +337,23 @@ export function PasswordsPage() {
     }
   };
 
+  const getDecryptedData = (
+    encryptedData: string,
+    encryptionParams: encryptionParams
+  ) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    const decryptedPassword = decryptDataWithCryptoJS(
+      encryptedData,
+      encryptionParams.iv,
+      encryptionParams.salt,
+      unlockInput
+    );
+    return decryptedPassword;
+  };
+
   const handleDelete = (id: string) => {
     console.log(id);
   };
@@ -418,8 +447,9 @@ export function PasswordsPage() {
               copyToClipboard(text);
               return true;
             }}
-            onCopyPassword={(text) =>
-              requestUnlock({ type: "copy-password", value: text })
+            getDecryptedData={getDecryptedData}
+            onCopyPassword={(data) =>
+              requestUnlock({ type: "copy-password", value: data })
             }
             onEdit={openEditModal}
             onDelete={handleDelete}
