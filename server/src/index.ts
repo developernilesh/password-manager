@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/database.js";
-import { addPassword, getPasswords } from "./controllers/passwords.js";
+import { addPassword, editPasswords, getPasswords } from "./controllers/passwords.js";
 
 const app = express();
 connectDB();
@@ -12,6 +12,7 @@ app.use(express.json());
 app.use(cors({ origin: process.env.FRONTEND_URL || "*", credentials: true }));
 
 app.post("/api/v1/add-password", addPassword);
+app.put("/api/v1/update-password", editPasswords);
 app.get("/api/v1/view-passwords/:userid", getPasswords);
 
 
