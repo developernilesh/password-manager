@@ -24,6 +24,7 @@ export interface PasswordRow {
   username: string;
   encryptedData: string;
   encryptionParams: encryptionParams;
+  decryptedPassword: string;
   url: string;
   category: string;
   createdAt: string;
@@ -37,10 +38,6 @@ interface PasswordsTableProps {
   onDelete: (id: string) => void;
   visibleById: Record<string, boolean>;
   onToggleVisibility: (id: string) => Promise<boolean> | boolean;
-  getDecryptedData: (
-    encryptedData: string,
-    encryptionParams: encryptionParams
-  ) => string | any;
 }
 
 export function PasswordsTable({
@@ -51,13 +48,12 @@ export function PasswordsTable({
   onDelete,
   visibleById,
   onToggleVisibility,
-  getDecryptedData,
 }: PasswordsTableProps) {
   const [copiedByKey, setCopiedByKey] = useState<Record<string, boolean>>({});
   const copyTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
     {}
   );
-  
+
   const markCopied = (key: string) => {
     if (copyTimeoutsRef.current[key]) {
       clearTimeout(copyTimeoutsRef.current[key]);
@@ -216,12 +212,7 @@ export function PasswordsTable({
                       </div>
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-white truncate max-w-[180px]">
-                          {isVisible
-                            ? getDecryptedData(
-                                row.encryptedData,
-                                row.encryptionParams
-                              )
-                            : "••••••••"}
+                          {isVisible ? row.decryptedPassword : "••••••••"}
                         </span>
                         <button
                           onClick={() => onToggleVisibility(row._id)}
@@ -289,12 +280,7 @@ export function PasswordsTable({
                   <td className="p-3 sm:p-4 md:p-6 align-middle hidden sm:table-cell">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-white truncate max-w-[140px] sm:max-w-none">
-                        {isVisible
-                          ? getDecryptedData(
-                              row.encryptedData,
-                              row.encryptionParams
-                            )
-                          : "••••••••"}
+                        {isVisible ? row.decryptedPassword : "••••••••"}
                       </span>
                       <button
                         onClick={() => onToggleVisibility(row._id)}
