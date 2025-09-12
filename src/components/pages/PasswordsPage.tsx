@@ -24,6 +24,7 @@ import {
 } from "@/lib/encryption-client";
 import { apiClient } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
+import LoadingSpinner from "../layout/LoadingSpinner";
 
 interface encryptionParams {
   iv: string;
@@ -38,6 +39,7 @@ interface Password {
   username: string;
   encryptedData: string;
   encryptionParams: encryptionParams;
+  decryptedPassword: string;
   url: string;
   category: string;
   createdAt: string;
@@ -138,10 +140,7 @@ export function PasswordsPage() {
       if (action.type === "toggle-visibility") {
         setVisibleById((prev) => ({ ...prev, [action.id]: !prev[action.id] }));
       } else if (action.type === "copy-password") {
-        const valueToCopy = getDecryptedData(
-          action.value.encryptedData,
-          action.value.encryptionParams
-        );
+        const valueToCopy = action.value.decryptedPassword;
         copyToClipboard(valueToCopy as string);
       }
       return Promise.resolve(true);
@@ -175,10 +174,7 @@ export function PasswordsPage() {
               [pendingAction.id]: !prev[pendingAction.id],
             }));
           } else if (pendingAction.type === "copy-password") {
-            const valueToCopy = getDecryptedData(
-              pendingAction.value.encryptedData,
-              pendingAction.value.encryptionParams
-            );
+            const valueToCopy = pendingAction.value.decryptedPassword;
             copyToClipboard(valueToCopy as string);
           }
           pendingResolveRef.current?.(true);
@@ -274,7 +270,7 @@ export function PasswordsPage() {
     reset({
       title: pwd.title,
       username: pwd.username,
-      password: pwd.encryptedData,
+      password: pwd.decryptedPassword,
       url: pwd.url,
       category: pwd.category as PasswordFormInput["category"],
     });
@@ -282,24 +278,40 @@ export function PasswordsPage() {
   };
 
   const onSubmit: SubmitHandler<PasswordFormOutput> = async (values) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    const { encryptedData, iv, salt } = encryptDataWithCryptoJS(
+      values.password,
+      unlockInput
+    );
     if (editingPassword) {
-      // const updated: Password = {
-      //   ...editingPassword,
-      //   title: values.title,
-      //   username: values.username,
-      //   password: values.password,
-      //   url: values.url,
-      //   category: values.category,
-      // };
-    } else {
-      if (!isUnlocked) {
-        setIsUnlockOpen(true);
-        return;
+      // console.log(editingPassword._id);
+      try {
+        const { data } = await apiClient.put("/update-password", {
+          passwordId: editingPassword._id,
+          username: values.username,
+          title: values.title,
+          url: values.url,
+          category: values.category,
+          encryptedData,
+          encryptionParams: {
+            iv,
+            salt,
+            algorithm: "AES-256-CBC",
+            version: "1.0",
+          },
+        });
+        if (data.success === true) {
+          toast.success((data as { message: string }).message);
+          handleGetPasswords();
+          setIsModalOpen(false);
+        }
+      } catch (error) {
+        toast.error((error as { message: string }).message);
       }
-      const { encryptedData, iv, salt } = encryptDataWithCryptoJS(
-        values.password,
-        unlockInput
-      );
+    } else {
       try {
         const { data } = await apiClient.post("/add-password", {
           userid: (user as { id: string }).id,
@@ -317,6 +329,7 @@ export function PasswordsPage() {
         });
         if (data.success === true) {
           toast.success((data as { message: string }).message);
+          handleGetPasswords();
           setIsModalOpen(false);
         }
       } catch (error) {
@@ -326,16 +339,39 @@ export function PasswordsPage() {
   };
 
   const handleGetPasswords = async () => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    setIsLoading(true);
     try {
       const response = await apiClient.get(
         `/view-passwords/${(user as { id: string }).id}`
       );
       const { data: encryptedPasswords } = response.data;
-      setPasswords(encryptedPasswords);
+      const decryptedPasswords = encryptedPasswords.map((item: any) => {
+        const decryptedPassword = decryptDataWithCryptoJS(
+          item.encryptedData,
+          item.encryptionParams.iv,
+          item.encryptionParams.salt,
+          unlockInput
+        );
+        return {
+          ...item,
+          decryptedPassword: decryptedPassword,
+        };
+      });
+      setPasswords(decryptedPasswords);
     } catch (error) {
       console.error((error as { message: string }).message);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (unlockInput && isUnlocked) handleGetPasswords();
+  }, [unlockInput, isUnlocked]);
 
   const getDecryptedData = (
     encryptedData: string,
@@ -361,26 +397,35 @@ export function PasswordsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Passwords</h1>
-          <p className="text-gray-400">
-            Manage and organize your passwords securely
-          </p>
-          <p>Master Password: {unlockInput}</p>
+      {isLoading ? (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-pulse">
+          <div>
+            <div className="h-8 w-40 bg-gray-700 rounded mb-2" />
+            <div className="h-5 w-72 bg-gray-700 rounded" />
+          </div>
+          <div className="h-10 w-36 bg-gray-700 rounded-lg" />
         </div>
-        <Button
-          onClick={openAddModal}
-          className="bg-teal-600 hover:bg-teal-500 text-white"
-          disabled={isLoading}
-        >
-          <FiPlus className="h-5 w-5" />
-          Add Password
-        </Button>
-      </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Passwords</h1>
+            <p className="text-gray-400">
+              Manage and organize your passwords securely
+            </p>
+          </div>
+          <Button
+            onClick={openAddModal}
+            className="bg-teal-600 hover:bg-teal-500 text-white"
+            disabled={isLoading}
+          >
+            <FiPlus className="h-5 w-5" />
+            Add Password
+          </Button>
+        </div>
+      )}
 
       {/* Show direction if master password not set */}
-      {hasMasterPassword === false && (
+      {!isLoading && hasMasterPassword === false && (
         <div className="bg-yellow-900/60 border border-yellow-700 rounded-lg p-4 text-yellow-300 text-center mb-4">
           <strong>Set up your master password first!</strong>
           <div className="mt-2">
@@ -396,33 +441,57 @@ export function PasswordsPage() {
       )}
 
       {/* Search + Filter */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by title, username, or URL"
-            className="w-full sm:flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-          <div className="flex w-full sm:w-auto">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-48 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </option>
-              ))}
-            </select>
+      {isLoading ? (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700 animate-pulse">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="h-11 w-full sm:flex-1 bg-gray-700 rounded-lg" />
+            <div className="h-11 w-full sm:w-48 bg-gray-700 rounded-lg" />
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by title, username, or URL"
+              className="w-full sm:flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <div className="flex w-full sm:w-auto">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full sm:w-48 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {categories.map((category: string) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Passwords Table */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
-        {passwords.length === 0 ? (
+        {isLoading ? (
+          <div className="p-6 space-y-4 animate-pulse">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-4 border-b border-gray-700 pb-4"
+              >
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-32 bg-gray-700 rounded" />
+                  <div className="h-4 w-48 bg-gray-700 rounded" />
+                </div>
+                <div className="h-8 w-20 bg-gray-700 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        ) : passwords.length === 0 ? (
           <div className="text-center py-12">
             <FiGlobe className="h-16 w-16 text-gray-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-300 mb-2">
@@ -443,18 +512,17 @@ export function PasswordsPage() {
         ) : (
           <PasswordsTable
             data={paginatedPasswords}
-            onCopyUsername={(text) => {
+            onCopyUsername={(text: string) => {
               copyToClipboard(text);
               return true;
             }}
-            getDecryptedData={getDecryptedData}
-            onCopyPassword={(data) =>
+            onCopyPassword={(data: any) =>
               requestUnlock({ type: "copy-password", value: data })
             }
             onEdit={openEditModal}
             onDelete={handleDelete}
             visibleById={visibleById}
-            onToggleVisibility={(id) =>
+            onToggleVisibility={(id: string) =>
               requestUnlock({ type: "toggle-visibility", id })
             }
           />
