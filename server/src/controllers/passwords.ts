@@ -3,9 +3,6 @@ dotenv.config();
 
 import type { Request, Response } from "express";
 import { PasswordsModel } from "../models/passwords.js";
-import { Encryption } from "../utils/encryption.js";
-
-const encryption = new Encryption();
 
 export const addPassword = async (req: Request, res: Response) => {
   try {
@@ -68,6 +65,73 @@ export const addPassword = async (req: Request, res: Response) => {
       success: true,
       message: "Password created successfully!",
       newPassword,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: `Something went wrong: ${
+        (error as { message: string }).message
+      }`,
+    });
+  }
+};
+
+export const editPasswords = async (req: Request, res: Response) => {
+  try {
+    const {
+      passwordId,
+      title,
+      url,
+      username,
+      category,
+      encryptedData,
+      encryptionParams,
+    } = req.body;
+
+    if (
+      !passwordId ||
+      !title ||
+      !url ||
+      !username ||
+      !category ||
+      !encryptedData ||
+      !encryptionParams
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update password at moment. Please try again!",
+      });
+    }
+
+    const passwordToEdit = await PasswordsModel.findOne(passwordId);
+
+    if (!passwordToEdit) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to fetch data. Please try again!",
+      });
+    }
+
+    passwordToEdit.title = title;
+    passwordToEdit.url = url;
+    passwordToEdit.username = username;
+    passwordToEdit.category = category;
+    passwordToEdit.encryptedData = encryptedData;
+    passwordToEdit.encryptionParams = encryptionParams;
+
+    const updatedPassword = await passwordToEdit.save();
+
+    if (!updatedPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update password at moment. Please try again!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully!",
+      updatedPassword,
     });
   } catch (error) {
     res.status(500).json({
