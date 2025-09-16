@@ -326,30 +326,12 @@ export function PasswordsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!unlockInput) {
-      setIsUnlockOpen(true);
-      return;
-    }
-    try {
-      const { data } = await apiClient.delete(`/delete-password/${id}`, {
-        data: {
-          userid: (user as { id: string }).id,
-        },
-      });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(null);
 
-      if (data.success) {
-        toast.success((data as { message: string }).message);
-        handleGetPasswords();
-        setIsModalOpen(false);
-      }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      toast.error(errorMessage);
-    }
+  const handleDelete = async (id: string) => {
+    setPasswordIdToDelete(id);
+    setDeleteConfirmOpen(true);
   };
 
   const handleGetPasswords = async () => {
@@ -402,6 +384,32 @@ export function PasswordsPage() {
       unlockInput
     );
     return decryptedPassword;
+  };
+
+  const actuallyDeletePassword = async (id: string) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    try {
+      const { data } = await apiClient.delete(`/delete-password/${id}`, {
+        data: {
+          userid: (user as { id: string }).id,
+        },
+      });
+
+      if (data.success) {
+        toast.success((data as { message: string }).message);
+        handleGetPasswords();
+        setIsModalOpen(false);
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -767,6 +775,38 @@ export function PasswordsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="w-11/12 max-w-md">
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 py-2 text-gray-300">
+            Do you really want to delete this password? This action cannot be undone.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-500 text-white"
+              onClick={async () => {
+                if (passwordIdToDelete) {
+                  setDeleteConfirmOpen(false);
+                  await actuallyDeletePassword(passwordIdToDelete);
+                  setPasswordIdToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
