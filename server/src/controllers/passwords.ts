@@ -78,8 +78,10 @@ export const addPassword = async (req: Request, res: Response) => {
 
 export const editPasswords = async (req: Request, res: Response) => {
   try {
+    const { passwordId } = req.params;
+
     const {
-      passwordId,
+      userid,
       title,
       url,
       username,
@@ -90,6 +92,7 @@ export const editPasswords = async (req: Request, res: Response) => {
 
     if (
       !passwordId ||
+      !userid ||
       !title ||
       !url ||
       !username ||
@@ -103,12 +106,19 @@ export const editPasswords = async (req: Request, res: Response) => {
       });
     }
 
-    const passwordToEdit = await PasswordsModel.findOne(passwordId);
+    const passwordToEdit = await PasswordsModel.findById(passwordId);
 
     if (!passwordToEdit) {
       return res.status(400).json({
         success: false,
         message: "Unable to fetch data. Please try again!",
+      });
+    }
+
+    if (passwordToEdit.userid !== userid) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not authenticated to update this password!",
       });
     }
 
@@ -132,6 +142,61 @@ export const editPasswords = async (req: Request, res: Response) => {
       success: true,
       message: "Password updated successfully!",
       updatedPassword,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: `Something went wrong: ${
+        (error as { message: string }).message
+      }`,
+    });
+  }
+};
+
+export const deletePassword = async (req: Request, res: Response) => {
+  try {
+    const { passwordId } = req.params;
+
+    const { userid } = req.body;
+
+    if (!passwordId || !userid) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete password at moment. Please try again!",
+      });
+    }
+
+    const passwordToDelete = await PasswordsModel.findById(passwordId);
+
+    if (!passwordToDelete) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to fetch data. Please try again!",
+      });
+    }
+
+    if (passwordToDelete.userid !== userid) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not authenticated to update this password!",
+      });
+    }
+
+    const passwordsAfterDeleteion = await PasswordsModel.findByIdAndDelete(
+      passwordId
+    );
+
+    if (!passwordsAfterDeleteion) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete password at moment. Please try again!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Password deleted successfully!",
+      passwordsAfterDeleteion,
     });
   } catch (error) {
     res.status(500).json({
