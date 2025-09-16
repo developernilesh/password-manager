@@ -254,6 +254,10 @@ export function PasswordsPage() {
       );
       return;
     }
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
     setEditingPassword(null);
     reset({
       title: "",
@@ -286,55 +290,65 @@ export function PasswordsPage() {
       values.password,
       unlockInput
     );
-    if (editingPassword) {
-      // console.log(editingPassword._id);
-      try {
-        const { data } = await apiClient.put("/update-password", {
-          passwordId: editingPassword._id,
-          username: values.username,
-          title: values.title,
-          url: values.url,
-          category: values.category,
-          encryptedData,
-          encryptionParams: {
-            iv,
-            salt,
-            algorithm: "AES-256-CBC",
-            version: "1.0",
-          },
-        });
-        if (data.success === true) {
-          toast.success((data as { message: string }).message);
-          handleGetPasswords();
-          setIsModalOpen(false);
-        }
-      } catch (error) {
-        toast.error((error as { message: string }).message);
+    const payload = {
+      userid: (user as { id: string }).id,
+      username: values.username,
+      title: values.title,
+      url: values.url,
+      category: values.category,
+      encryptedData,
+      encryptionParams: {
+        iv,
+        salt,
+        algorithm: "AES-256-CBC",
+        version: "1.0",
+      },
+    };
+    try {
+      const endpoint = editingPassword
+        ? `/update-password/${editingPassword._id}`
+        : "/add-password";
+      const method = editingPassword ? apiClient.put : apiClient.post;
+
+      const { data } = await method(endpoint, payload);
+
+      if (data.success) {
+        toast.success((data as { message: string }).message);
+        handleGetPasswords();
+        setIsModalOpen(false);
       }
-    } else {
-      try {
-        const { data } = await apiClient.post("/add-password", {
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    try {
+      const { data } = await apiClient.delete(`/delete-password/${id}`, {
+        data: {
           userid: (user as { id: string }).id,
-          username: values.username,
-          title: values.title,
-          url: values.url,
-          category: values.category,
-          encryptedData,
-          encryptionParams: {
-            iv,
-            salt,
-            algorithm: "AES-256-CBC",
-            version: "1.0",
-          },
-        });
-        if (data.success === true) {
-          toast.success((data as { message: string }).message);
-          handleGetPasswords();
-          setIsModalOpen(false);
-        }
-      } catch (error) {
-        toast.error((error as { message: string }).message);
+        },
+      });
+
+      if (data.success) {
+        toast.success((data as { message: string }).message);
+        handleGetPasswords();
+        setIsModalOpen(false);
       }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMessage);
     }
   };
 
@@ -388,10 +402,6 @@ export function PasswordsPage() {
       unlockInput
     );
     return decryptedPassword;
-  };
-
-  const handleDelete = (id: string) => {
-    console.log(id);
   };
 
   return (
