@@ -37,6 +37,10 @@ const passwordSchema = new Schema(
         type: String,
         required: true,
       },
+      hmac: {
+        type: String,
+        required: true,
+      },
       algorithm: {
         type: String,
         required: true,
