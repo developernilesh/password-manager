@@ -281,12 +281,15 @@ export function PasswordsPage() {
     setIsModalOpen(true);
   };
 
+  const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
+
   const onSubmit: SubmitHandler<PasswordFormOutput> = async (values) => {
     if (!unlockInput) {
       setIsUnlockOpen(true);
       return;
     }
-    const { encryptedData, iv, salt } = encryptDataWithCryptoJS(
+    setIsFormSubmitting(true);
+    const { encryptedData, iv, salt, hmac } = encryptDataWithCryptoJS(
       values.password,
       unlockInput
     );
@@ -300,6 +303,7 @@ export function PasswordsPage() {
       encryptionParams: {
         iv,
         salt,
+        hmac,
         algorithm: "AES-256-CBC",
         version: "1.0",
       },
@@ -323,15 +327,9 @@ export function PasswordsPage() {
         error?.message ||
         "Something went wrong!";
       toast.error(errorMessage);
+    } finally {
+      setIsFormSubmitting(false);
     }
-  };
-
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(null);
-
-  const handleDelete = async (id: string) => {
-    setPasswordIdToDelete(id);
-    setDeleteConfirmOpen(true);
   };
 
   const handleGetPasswords = async () => {
@@ -350,6 +348,7 @@ export function PasswordsPage() {
           item.encryptedData,
           item.encryptionParams.iv,
           item.encryptionParams.salt,
+          item.encryptionParams.hmac,
           unlockInput
         );
         return {
@@ -369,21 +368,14 @@ export function PasswordsPage() {
     if (unlockInput && isUnlocked) handleGetPasswords();
   }, [unlockInput, isUnlocked]);
 
-  const getDecryptedData = (
-    encryptedData: string,
-    encryptionParams: encryptionParams
-  ) => {
-    if (!unlockInput) {
-      setIsUnlockOpen(true);
-      return;
-    }
-    const decryptedPassword = decryptDataWithCryptoJS(
-      encryptedData,
-      encryptionParams.iv,
-      encryptionParams.salt,
-      unlockInput
-    );
-    return decryptedPassword;
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
+    null
+  );
+
+  const handleDelete = async (id: string) => {
+    setPasswordIdToDelete(id);
+    setDeleteConfirmOpen(true);
   };
 
   const actuallyDeletePassword = async (id: string) => {
@@ -708,17 +700,25 @@ export function PasswordsPage() {
 
             <DialogFooter>
               <div className="flex justify-end items-center gap-4">
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary">
-                    Cancel
-                  </Button>
-                </DialogClose>
+                {!isFormSubmitting && (
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                )}
                 <Button
                   type="submit"
                   className="bg-teal-600 hover:bg-teal-500 text-white"
                   disabled={isSubmitting}
                 >
-                  {editingPassword ? "Save Changes" : "Add"}
+                  {editingPassword
+                    ? isFormSubmitting
+                      ? "Saving..."
+                      : "Save Changes"
+                    : isFormSubmitting
+                    ? "Adding..."
+                    : "Add"}
                 </Button>
               </div>
             </DialogFooter>
@@ -785,7 +785,8 @@ export function PasswordsPage() {
             <DialogTitle>Are you sure?</DialogTitle>
           </DialogHeader>
           <div className="px-6 py-2 text-gray-300">
-            Do you really want to delete this password? This action cannot be undone.
+            Do you really want to delete this password? This action cannot be
+            undone.
           </div>
           <DialogFooter>
             <Button
