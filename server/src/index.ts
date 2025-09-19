@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/database.js";
-import { addPassword, deletePassword, editPasswords, getPasswords } from "./controllers/passwords.js";
+import { addPassword, deletePassword, editPasswords, getPasswords, updateAllPasswords } from "./controllers/passwords.js";
 
 const app = express();
 connectDB();
@@ -15,6 +15,7 @@ app.post("/api/v1/add-password", addPassword);
 app.put("/api/v1/update-password/:passwordId", editPasswords);
 app.delete("/api/v1/delete-password/:passwordId", deletePassword);
 app.get("/api/v1/view-passwords/:userid", getPasswords);
+app.post("/api/v1/update-passwords", updateAllPasswords);
 
 app.get("/", (req, res) => {
   return res.json({
