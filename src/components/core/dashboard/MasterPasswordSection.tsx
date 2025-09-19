@@ -18,6 +18,12 @@ import {
   verifyMasterPassword,
 } from "@/actions/actions";
 import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
+import {
+  decryptDataWithCryptoJS,
+  encryptDataWithCryptoJS,
+} from "@/lib/encryption-client";
+import { useUser } from "@clerk/nextjs";
 
 export function MasterPasswordSection() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -31,6 +37,8 @@ export function MasterPasswordSection() {
     text: string;
   } | null>(null);
   const [hasMasterPassword, setHasMasterPassword] = useState(false); // TODO: Get this from backend - for now showing "not set" scenario
+
+  const { user } = useUser();
 
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -49,14 +57,16 @@ export function MasterPasswordSection() {
     setIsUpdating(true);
     setMessage(null);
     try {
-      if (hasMasterPassword && !formData.currentPassword) {
-        setMessage({ type: "error", text: "Current password is required" });
-        return;
-      }
-      const isMatched = await verifyMasterPassword(formData.currentPassword);
-      if (!isMatched) {
-        setMessage({ type: "error", text: "Current password doesn't match" });
-        return;
+      if (hasMasterPassword) {
+        if (!formData.currentPassword) {
+          setMessage({ type: "error", text: "Current password is required" });
+          return;
+        }
+        const isMatched = await verifyMasterPassword(formData.currentPassword);
+        if (!isMatched) {
+          setMessage({ type: "error", text: "Current password doesn't match" });
+          return;
+        }
       }
       if (formData.newPassword.length < 8) {
         setMessage({
@@ -77,26 +87,113 @@ export function MasterPasswordSection() {
         });
         return;
       }
-      const successMessage = hasMasterPassword
-        ? "Master password updated successfully!"
-        : "Master password set successfully!";
-
-      toast.success(successMessage);
-      setIsEditing(false);
-      setFormData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      if (hasMasterPassword) {
+        handleMasterPasswordChange(
+          (user as { id: string }).id,
+          formData.currentPassword,
+          formData.newPassword
+        );
+      } else {
+        toast.success("Master password set successfully!");
+        setFormData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
       setHasMasterPassword(true); // Update local state
-    } catch (error) {
-      const errorMessage = hasMasterPassword
-        ? "Failed to update master password. Please try again."
-        : "Failed to set master password. Please try again.";
-
+      setIsEditing(false);
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
       setMessage({ type: "error", text: errorMessage });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleMasterPasswordChange = async (
+    userId: string,
+    oldMasterPassword: string,
+    newMasterPassword: string
+  ): Promise<void> => {
+    setIsLoading(true);
+    try {
+      // 1. Get all passwords encrypted with the old master password
+      const response = await apiClient.get(`/view-passwords/${userId}`);
+      const { data: encryptedPasswords } = response.data;
+
+      // 2. Verifying old master password by trying to decrypt one password
+      try {
+        const testPassword = encryptedPasswords[0];
+        decryptDataWithCryptoJS(
+          testPassword.encryptedData,
+          testPassword.encryptionParams.iv,
+          testPassword.encryptionParams.salt,
+          testPassword.encryptionParams.hmac,
+          oldMasterPassword
+        );
+      } catch (error) {
+        throw new Error("Old master password is incorrect");
+      }
+
+      // 3. Re-encrypting all passwords with the new master password
+      const updatedPasswords = await Promise.all(
+        encryptedPasswords.map(async (password: any) => {
+          // Decrypt with old master password
+          const decryptedPassword = decryptDataWithCryptoJS(
+            password.encryptedData,
+            password.encryptionParams.iv,
+            password.encryptionParams.salt,
+            password.encryptionParams.hmac,
+            oldMasterPassword
+          );
+
+          // Encrypt with new master password
+          const { encryptedData, iv, salt, hmac } = encryptDataWithCryptoJS(
+            decryptedPassword,
+            newMasterPassword
+          );
+
+          return {
+            _id: password._id,
+            encryptedData,
+            encryptionParams: {
+              iv,
+              salt,
+              hmac,
+              algorithm: "AES-256-CBC",
+              version: "1.0",
+            },
+          };
+        })
+      );
+
+      // 4. Send updated passwords to the server
+      const { data } = await apiClient.post("/update-passwords", {
+        userId: (user as { id: string }).id,
+        updatedPasswords,
+      });
+
+      if (data.success) {
+        toast.success("Master password updated successfully!");
+        setIsEditing(false);
+        setFormData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      setMessage({ type: "error", text: errorMessage });
+    } finally {
+      setIsLoading(false);
     }
   };
 
