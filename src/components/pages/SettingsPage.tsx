@@ -1,6 +1,7 @@
 "use client";
 
 import { MasterPasswordSection } from "@/components/core/dashboard/MasterPasswordSection";
+import { UserButton } from "@clerk/nextjs";
 
 export function SettingsPage() {
   return (
@@ -17,7 +18,7 @@ export function SettingsPage() {
       <MasterPasswordSection />
 
       {/* Additional Settings Sections */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+      {/* <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
         <h2 className="text-xl font-bold mb-4">Security Preferences</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -64,9 +65,21 @@ export function SettingsPage() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+        <h2 className="text-xl font-bold mb-4">Profile Settings</h2>
+        <div className="flex items-center justify-start gap-8">
+          <div>
+            <h3 className="font-semibold text-gray-300">Manage Profile</h3>
+            <p className="text-sm text-gray-400">
+              Update your profile settings and informations
+            </p>
+          </div>
+          <UserButton />
+        </div>
+      </div>
+      {/* <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
         <h2 className="text-xl font-bold mb-4">Data Management</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -105,7 +118,7 @@ export function SettingsPage() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
