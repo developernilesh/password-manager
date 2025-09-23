@@ -31,6 +31,8 @@ export function MasterPasswordSection() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChangingMasterPassword, setIsChangingMasterPassword] =
+    useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -54,7 +56,7 @@ export function MasterPasswordSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUpdating(true);
+    setIsChangingMasterPassword(true);
     setMessage(null);
     try {
       if (hasMasterPassword) {
@@ -100,9 +102,9 @@ export function MasterPasswordSection() {
           newPassword: "",
           confirmPassword: "",
         });
+        setIsEditing(false);
       }
       setHasMasterPassword(true); // Update local state
-      setIsEditing(false);
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message ||
@@ -110,7 +112,7 @@ export function MasterPasswordSection() {
         "Something went wrong!";
       setMessage({ type: "error", text: errorMessage });
     } finally {
-      setIsUpdating(false);
+      setIsChangingMasterPassword(false);
     }
   };
 
@@ -119,7 +121,7 @@ export function MasterPasswordSection() {
     oldMasterPassword: string,
     newMasterPassword: string
   ): Promise<void> => {
-    setIsLoading(true);
+    setIsUpdating(true);
     try {
       // 1. Get all passwords encrypted with the old master password
       const response = await apiClient.get(`/view-passwords/${userId}`);
@@ -193,7 +195,7 @@ export function MasterPasswordSection() {
         "Something went wrong!";
       setMessage({ type: "error", text: errorMessage });
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
@@ -338,6 +340,7 @@ export function MasterPasswordSection() {
                         handleInputChange("currentPassword", e.target.value)
                       }
                       required
+                      disabled={isChangingMasterPassword || isUpdating}
                     />
                     <button
                       type="button"
@@ -368,6 +371,7 @@ export function MasterPasswordSection() {
                       handleInputChange("newPassword", e.target.value)
                     }
                     required
+                    disabled={isChangingMasterPassword || isUpdating}
                   />
                   <button
                     type="button"
@@ -398,6 +402,7 @@ export function MasterPasswordSection() {
                       handleInputChange("confirmPassword", e.target.value)
                     }
                     required
+                    disabled={isChangingMasterPassword || isUpdating}
                   />
                   <button
                     type="button"
@@ -416,10 +421,10 @@ export function MasterPasswordSection() {
               <div className="flex space-x-3 pt-2">
                 <Button
                   type="submit"
-                  disabled={isUpdating}
+                  disabled={isChangingMasterPassword || isUpdating}
                   className="bg-teal-600 hover:bg-teal-500 text-white flex-1"
                 >
-                  {isUpdating
+                  {isChangingMasterPassword || isUpdating
                     ? hasMasterPassword
                       ? "Updating..."
                       : "Setting..."
@@ -429,7 +434,7 @@ export function MasterPasswordSection() {
                 </Button>
                 <Button
                   type="button"
-                  disabled={isUpdating}
+                  disabled={isChangingMasterPassword || isUpdating}
                   onClick={handleCancel}
                   variant="secondary"
                   className="flex-1 bg-gray-700 hover:bg-gray-600 text-white"
