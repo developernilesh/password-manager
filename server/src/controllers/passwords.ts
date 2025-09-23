@@ -31,18 +31,18 @@ export const addPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const isExisting = await PasswordsModel.findOne({
-      userid,
-      url,
-      username,
-    });
+    // const isExisting = await PasswordsModel.findOne({
+    //   userid,
+    //   url,
+    //   username,
+    // });
 
-    if (isExisting) {
-      return res.status(400).json({
-        success: false,
-        message: "Duplicate entry can't be created!",
-      });
-    }
+    // if (isExisting) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Duplicate entry can't be created!",
+    //   });
+    // }
 
     const newPassword = await PasswordsModel.create({
       userid,
