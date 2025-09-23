@@ -14,6 +14,7 @@ import {
 interface encryptionParams {
   iv: string;
   salt: string;
+  hmac: string;
   algorithm: string;
   version: string;
 }

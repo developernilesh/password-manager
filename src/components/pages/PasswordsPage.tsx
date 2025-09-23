@@ -30,6 +30,7 @@ interface encryptionParams {
   iv: string;
   salt: string;
   algorithm: string;
+  hmac: string;
   version: string;
 }
 
