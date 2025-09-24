@@ -10,13 +10,25 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  hmac: string;
+  version: string;
+}
+
 export interface CreditCardRow {
-  id: string;
+  _id: string;
   cardName: string;
-  cardNumber: string;
+  encryptedCardNumber: string;
+  cardNoEncryptionParams: encryptionParams;
+  decryptedCardNumber: string;
   cardholderName: string;
   expiryDate: string; // MM/YY
-  cvv: string; // 3-4 digits
+  encryptedCvv: string;
+  cvvEncryptionParams: encryptionParams;
+  decryptedCvv: string;
   bank: string;
   category: string;
   createdAt: string;
@@ -128,10 +140,10 @@ export function CreditCardsGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
       {cards.map((card) => {
-        const vis = visibleById[card.id] ?? { number: false, cvv: false };
+        const vis = visibleById[card._id] ?? { number: false, cvv: false };
         return (
           <div
-            key={card.id}
+            key={card._id}
             className="credit-card-bg rounded-lg p-6 border hover:border-gray-500 transition-colors"
           >
             {/* Card Header */}
@@ -159,7 +171,7 @@ export function CreditCardsGrid({
                 </button>
                 <button
                   className="p-2 hover:bg-gray-600 rounded transition-colors"
-                  onClick={() => onDelete(card.id)}
+                  onClick={() => onDelete(card._id)}
                   aria-label="Delete card"
                 >
                   <FiTrash2 className="h-4 w-4 text-red-400" />
@@ -174,11 +186,11 @@ export function CreditCardsGrid({
                 <div className="flex items-center space-x-2">
                   <span className="font-mono">
                     {vis.number
-                      ? card.cardNumber
-                      : maskCardNumber(card.cardNumber)}
+                      ? card.decryptedCardNumber
+                      : maskCardNumber(card.decryptedCardNumber)}
                   </span>
                   <button
-                    onClick={() => onToggleVisibility(card.id, "number")}
+                    onClick={() => onToggleVisibility(card._id, "number")}
                     className="p-1 hover:bg-gray-600 rounded transition-colors"
                     aria-label={vis.number ? "Hide number" : "Show number"}
                   >
@@ -190,21 +202,21 @@ export function CreditCardsGrid({
                   </button>
                   <button
                     onClick={() =>
-                      handleCopy(`${card.id}-number`, card.cardNumber, "number")
+                      handleCopy(`${card._id}-number`, card.decryptedCardNumber, "number")
                     }
                     className="p-1 hover:bg-gray-600 rounded transition-colors"
                     aria-label={
-                      copiedByKey[`${card.id}-number`]
+                      copiedByKey[`${card._id}-number`]
                         ? "Copied"
                         : "Copy number"
                     }
                     title={
-                      copiedByKey[`${card.id}-number`]
+                      copiedByKey[`${card._id}-number`]
                         ? "Copied"
                         : "Copy number"
                     }
                   >
-                    {copiedByKey[`${card.id}-number`] ? (
+                    {copiedByKey[`${card._id}-number`] ? (
                       <svg
                         viewBox="0 0 24 24"
                         width="16"
@@ -230,24 +242,24 @@ export function CreditCardsGrid({
                     <button
                       onClick={() =>
                         handleCopy(
-                          `${card.id}-holder`,
+                          `${card._id}-holder`,
                           card.cardholderName,
                           "holder"
                         )
                       }
                       className="p-1 hover:bg-gray-600 rounded transition-colors"
                       aria-label={
-                        copiedByKey[`${card.id}-holder`]
+                        copiedByKey[`${card._id}-holder`]
                           ? "Copied"
                           : "Copy cardholder"
                       }
                       title={
-                        copiedByKey[`${card.id}-holder`]
+                        copiedByKey[`${card._id}-holder`]
                           ? "Copied"
                           : "Copy cardholder"
                       }
                     >
-                      {copiedByKey[`${card.id}-holder`] ? (
+                      {copiedByKey[`${card._id}-holder`] ? (
                         <svg
                           viewBox="0 0 24 24"
                           width="16"
@@ -274,10 +286,10 @@ export function CreditCardsGrid({
                 <label className="text-xs text-teal-400">CVV</label>
                 <div className="flex items-center space-x-2">
                   <span className="font-mono">
-                    {vis.cvv ? card.cvv : "***"}
+                    {vis.cvv ? card.decryptedCvv : "***"}
                   </span>
                   <button
-                    onClick={() => onToggleVisibility(card.id, "cvv")}
+                    onClick={() => onToggleVisibility(card._id, "cvv")}
                     className="p-1 hover:bg-gray-600 rounded transition-colors"
                     aria-label={vis.cvv ? "Hide CVV" : "Show CVV"}
                   >
@@ -289,17 +301,17 @@ export function CreditCardsGrid({
                   </button>
                   <button
                     onClick={() =>
-                      handleCopy(`${card.id}-cvv`, card.cvv, "cvv")
+                      handleCopy(`${card._id}-cvv`, card.decryptedCvv, "cvv")
                     }
                     className="p-1 hover:bg-gray-600 rounded transition-colors"
                     aria-label={
-                      copiedByKey[`${card.id}-cvv`] ? "Copied" : "Copy CVV"
+                      copiedByKey[`${card._id}-cvv`] ? "Copied" : "Copy CVV"
                     }
                     title={
-                      copiedByKey[`${card.id}-cvv`] ? "Copied" : "Copy CVV"
+                      copiedByKey[`${card._id}-cvv`] ? "Copied" : "Copy CVV"
                     }
                   >
-                    {copiedByKey[`${card.id}-cvv`] ? (
+                    {copiedByKey[`${card._id}-cvv`] ? (
                       <svg
                         viewBox="0 0 24 24"
                         width="16"
