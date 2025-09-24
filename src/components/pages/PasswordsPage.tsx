@@ -24,7 +24,6 @@ import {
 } from "@/lib/encryption-client";
 import { apiClient } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
-import LoadingSpinner from "../layout/LoadingSpinner";
 
 interface encryptionParams {
   iv: string;
@@ -110,6 +109,7 @@ export function PasswordsPage() {
         p.title.toLowerCase().includes(q) ||
         p.username.toLowerCase().includes(q) ||
         p.url.toLowerCase().includes(q) ||
+        p.decryptedPassword.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q)
       );
     });
