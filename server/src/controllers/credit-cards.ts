@@ -16,7 +16,7 @@ export const addCreditCard = async (req: Request, res: Response) => {
       encryptedCardNumber,
       cardNoEncryptionParams,
       encryptedCvv,
-      CvvEncryptionParams,
+      cvvEncryptionParams,
     } = req.body;
 
     if (
@@ -29,7 +29,7 @@ export const addCreditCard = async (req: Request, res: Response) => {
       !encryptedCardNumber ||
       !cardNoEncryptionParams ||
       !encryptedCvv ||
-      !CvvEncryptionParams
+      !cvvEncryptionParams
     ) {
       return res.status(400).json({
         success: false,
@@ -47,7 +47,7 @@ export const addCreditCard = async (req: Request, res: Response) => {
       encryptedCardNumber,
       cardNoEncryptionParams,
       encryptedCvv,
-      CvvEncryptionParams,
+      cvvEncryptionParams,
     });
 
     if (!newCard) {
