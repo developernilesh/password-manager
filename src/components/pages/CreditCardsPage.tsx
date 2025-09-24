@@ -18,14 +18,27 @@ import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCards
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { encryptDataWithCryptoJS } from "@/lib/encryption-client";
+
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  hmac: string;
+  version: string;
+}
 
 interface CreditCard {
-  id: string;
+  _id: string;
   cardName: string;
-  cardNumber: string;
+  encryptedCardNumber: string;
+  cardNoEncryptionParams: encryptionParams;
+  decryptedCardNumber: string;
   cardholderName: string;
   expiryDate: string; // MM/YY
-  cvv: string; // 3-4 digits
+  encryptedCvv: string;
+  cvvEncryptionParams: encryptionParams;
+  decryptedCvv: string;
   bank: string;
   category: string;
   createdAt: string;
@@ -111,7 +124,9 @@ export function CreditCardsPage() {
         c.cardName.toLowerCase().includes(q) ||
         c.bank.toLowerCase().includes(q) ||
         c.cardholderName.toLowerCase().includes(q) ||
-        c.cardNumber.replaceAll(" ", "").includes(q.replaceAll(" ", "")) ||
+        c.decryptedCardNumber
+          .replaceAll(" ", "")
+          .includes(q.replaceAll(" ", "")) ||
         c.category.toLowerCase().includes(q)
       );
     });
@@ -214,15 +229,6 @@ export function CreditCardsPage() {
     pendingResolveRef.current?.(false);
     pendingResolveRef.current = null;
     setPendingAction(null);
-  };
-
-  const saveCards = (next: CreditCard[]) => {
-    setCreditCards(next);
-    try {
-      localStorage.setItem("creditCards", JSON.stringify(next));
-    } catch {
-      // ignore quota errors
-    }
   };
 
   // Handlers to interop with child grid component
@@ -412,51 +418,74 @@ export function CreditCardsPage() {
       cardName: card.cardName,
       bank: card.bank,
       cardholderName: card.cardholderName,
-      cardNumber: formatCardNumberForDisplay(card.cardNumber),
+      cardNumber: formatCardNumberForDisplay(card.decryptedCardNumber),
       expiryDate: card.expiryDate,
-      cvv: card.cvv,
+      cvv: card.decryptedCvv,
       category: card.category as CardFormInput["category"],
     });
     setIsModalOpen(true);
   };
 
-  const onSubmit: SubmitHandler<CardFormOutput> = (values) => {
-    const normalizedNumber = values.cardNumber; // already digits-only from schema transform
-    if (editingCard) {
-      const updated: CreditCard = {
-        ...editingCard,
-        cardName: values.cardName,
-        bank: values.bank,
-        cardholderName: values.cardholderName,
-        cardNumber: normalizedNumber,
-        expiryDate: values.expiryDate,
-        cvv: values.cvv,
-        category: values.category,
-      };
-      const next = creditCards.map((c) =>
-        c.id === editingCard.id ? updated : c
-      );
-      saveCards(next);
-    } else {
-      const newCard: CreditCard = {
-        id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
-        cardName: values.cardName,
-        bank: values.bank,
-        cardholderName: values.cardholderName,
-        cardNumber: normalizedNumber,
-        expiryDate: values.expiryDate,
-        cvv: values.cvv,
-        category: values.category,
-        createdAt: new Date().toISOString(),
-      };
-      saveCards([newCard, ...creditCards]);
-    }
-    setIsModalOpen(false);
-  };
+  const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {}
+  // const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {
+  //   // if (editingCard) {
+  //   // } else {
+  //   // }
+  //   // setIsModalOpen(false);
+  //   if (!unlockInput) {
+  //     setIsUnlockOpen(true);
+  //     return;
+  //   }
+  //   const normalizedNumber = values.cardNumber; // already digits-only from schema transform
+  //   // setIsFormSubmitting(true);
+  //   const {
+  //     encryptedData: encryptedCardNumber,
+  //     iv,
+  //     salt,
+  //     hmac,
+  //   } = encryptDataWithCryptoJS(normalizedNumber, unlockInput);
+
+  //   const payload = {
+  //     userid: (user as { id: string }).id,
+  //     username: values.username,
+  //     title: values.title,
+  //     url: values.url,
+  //     category: values.category,
+  //     encryptedData,
+  //     encryptionParams: {
+  //       iv,
+  //       salt,
+  //       hmac,
+  //       algorithm: "AES-256-CBC",
+  //       version: "1.0",
+  //     },
+  //   };
+  //   try {
+  //     const endpoint = editingCard
+  //       ? `/update-password/${editingCard._id}`
+  //       : "/add-password";
+  //     const method = editingCard ? apiClient.put : apiClient.post;
+
+  //     const { data } = await method(endpoint, payload);
+
+  //     if (data.success) {
+  //       toast.success((data as { message: string }).message);
+  //       handleGetPasswords();
+  //       setIsModalOpen(false);
+  //     }
+  //   } catch (error: any) {
+  //     const errorMessage =
+  //       error?.response?.data?.message ||
+  //       error?.message ||
+  //       "Something went wrong!";
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setIsFormSubmitting(false);
+  //   }
+  // };
 
   const handleDelete = (id: string) => {
-    const next = creditCards.filter((c) => c.id !== id);
-    saveCards(next);
+    console.log("id", id);
   };
 
   // Removed local copy state; child grid manages its own copied state
