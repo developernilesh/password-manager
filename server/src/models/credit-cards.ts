@@ -61,7 +61,7 @@ const creditCardSchema = new Schema(
       type: String,
       required: true,
     },
-    CvvEncryptionParams: {
+    cvvEncryptionParams: {
       iv: {
         type: String,
         required: true,
