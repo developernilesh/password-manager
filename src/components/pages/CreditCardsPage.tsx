@@ -18,7 +18,12 @@ import { CreditCardsGrid } from "@/components/core/credit-cards-page/CreditCards
 import { verifyMasterPassword, getMasterPasswordHash } from "@/actions/actions";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { encryptDataWithCryptoJS } from "@/lib/encryption-client";
+import {
+  decryptDataWithCryptoJS,
+  encryptDataWithCryptoJS,
+} from "@/lib/encryption-client";
+import { useUser } from "@clerk/nextjs";
+import { apiClient } from "@/lib/api-client";
 
 interface encryptionParams {
   iv: string;
@@ -63,11 +68,14 @@ export function CreditCardsPage() {
   const [unlockInput, setUnlockInput] = useState("");
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
+  const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(
     null
   );
   const router = useRouter();
+  const { user } = useUser();
 
   type SensitiveField = "number" | "cvv";
   type PendingAction =
@@ -88,25 +96,25 @@ export function CreditCardsPage() {
   ];
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("creditCards");
-      if (stored) {
-        const parsed: CreditCard[] = JSON.parse(stored);
-        setCreditCards(parsed);
-      }
-    } catch {
-      // ignore malformed storage
-    }
-  }, []);
-
-  useEffect(() => {
     // Check if master password is set
     async function checkMasterPassword() {
-      const hash = await getMasterPasswordHash();
-      setHasMasterPassword(!!hash);
+      setIsLoading(true);
+      try {
+        const hash = await getMasterPasswordHash();
+        setHasMasterPassword(!!hash);
+        if (!!hash) handleGetCreditCardsInfo();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
     checkMasterPassword();
   }, []);
+
+  useEffect(() => {
+    if (unlockInput && isUnlocked) handleGetCreditCardsInfo();
+  }, [unlockInput, isUnlocked]);
 
   const filteredCards = useMemo(() => {
     return creditCards.filter((card) => {
@@ -188,7 +196,7 @@ export function CreditCardsPage() {
       if (isMatched) {
         setIsUnlocked(true);
         setIsUnlockOpen(false);
-        setUnlockInput("");
+        // setUnlockInput("");
         setUnlockError(null);
         if (pendingAction) {
           if (pendingAction.type === "toggle-visibility") {
@@ -224,7 +232,7 @@ export function CreditCardsPage() {
 
   const handleUnlockCancel = () => {
     setIsUnlockOpen(false);
-    setUnlockInput("");
+    if (!isUnlocked) setUnlockInput("");
     setUnlockError(null);
     pendingResolveRef.current?.(false);
     pendingResolveRef.current = null;
@@ -426,63 +434,118 @@ export function CreditCardsPage() {
     setIsModalOpen(true);
   };
 
-  const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {}
-  // const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {
-  //   // if (editingCard) {
-  //   // } else {
-  //   // }
-  //   // setIsModalOpen(false);
-  //   if (!unlockInput) {
-  //     setIsUnlockOpen(true);
-  //     return;
-  //   }
-  //   const normalizedNumber = values.cardNumber; // already digits-only from schema transform
-  //   // setIsFormSubmitting(true);
-  //   const {
-  //     encryptedData: encryptedCardNumber,
-  //     iv,
-  //     salt,
-  //     hmac,
-  //   } = encryptDataWithCryptoJS(normalizedNumber, unlockInput);
+  const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    setIsFormSubmitting(true);
+    const normalizedNumber = values.cardNumber; // already digits-only from schema transform
+    const {
+      encryptedData: encryptedCardNumber,
+      iv: cardNoIv,
+      salt: cardNoSalt,
+      hmac: cardNoHmac,
+    } = encryptDataWithCryptoJS(normalizedNumber, unlockInput);
 
-  //   const payload = {
-  //     userid: (user as { id: string }).id,
-  //     username: values.username,
-  //     title: values.title,
-  //     url: values.url,
-  //     category: values.category,
-  //     encryptedData,
-  //     encryptionParams: {
-  //       iv,
-  //       salt,
-  //       hmac,
-  //       algorithm: "AES-256-CBC",
-  //       version: "1.0",
-  //     },
-  //   };
-  //   try {
-  //     const endpoint = editingCard
-  //       ? `/update-password/${editingCard._id}`
-  //       : "/add-password";
-  //     const method = editingCard ? apiClient.put : apiClient.post;
+    const {
+      encryptedData: encryptedCvv,
+      iv: cvvIv,
+      salt: cvvSalt,
+      hmac: cvvHmac,
+    } = encryptDataWithCryptoJS(values.cvv, unlockInput);
 
-  //     const { data } = await method(endpoint, payload);
+    const payload = {
+      userid: (user as { id: string }).id,
+      cardName: values.cardName,
+      bank: values.bank,
+      cardholderName: values.cardholderName,
+      expiry: values.expiryDate,
+      category: values.category,
+      encryptedCardNumber,
+      cardNoEncryptionParams: {
+        iv: cardNoIv,
+        salt: cardNoSalt,
+        hmac: cardNoHmac,
+        algorithm: "AES-256-CBC",
+        version: "1.0",
+      },
+      encryptedCvv,
+      cvvEncryptionParams: {
+        iv: cvvIv,
+        salt: cvvSalt,
+        hmac: cvvHmac,
+        algorithm: "AES-256-CBC",
+        version: "1.0",
+      },
+    };
+    try {
+      const endpoint = editingCard
+        ? `/update-password/${editingCard._id}`
+        : "/add-credit-card";
+      const method = editingCard ? apiClient.put : apiClient.post;
 
-  //     if (data.success) {
-  //       toast.success((data as { message: string }).message);
-  //       handleGetPasswords();
-  //       setIsModalOpen(false);
-  //     }
-  //   } catch (error: any) {
-  //     const errorMessage =
-  //       error?.response?.data?.message ||
-  //       error?.message ||
-  //       "Something went wrong!";
-  //     toast.error(errorMessage);
-  //   } finally {
-  //     setIsFormSubmitting(false);
-  //   }
-  // };
+      const { data } = await apiClient.post("/add-credit-card", payload);
+
+      if (data.success) {
+        toast.success((data as { message: string }).message);
+        handleGetCreditCardsInfo();
+        setIsModalOpen(false);
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMessage);
+    } finally {
+      setIsFormSubmitting(false);
+    }
+  };
+
+  const handleGetCreditCardsInfo = async () => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await apiClient.get(
+        `/view-credit-cards/${(user as { id: string }).id}`
+      );
+      const { data: encryptedCreditCardsData } = response.data;
+      console.log("encryptedCreditCardsData", encryptedCreditCardsData);
+      const decryptedCreditCardsData = encryptedCreditCardsData.map(
+        (item: any) => {
+          const decryptedCardNumber = decryptDataWithCryptoJS(
+            item.encryptedCardNumber,
+            item.cardNoEncryptionParams.iv,
+            item.cardNoEncryptionParams.salt,
+            item.cardNoEncryptionParams.hmac,
+            unlockInput
+          );
+          const decryptedCvv = decryptDataWithCryptoJS(
+            item.encryptedCvv,
+            item.cvvEncryptionParams.iv,
+            item.cvvEncryptionParams.salt,
+            item.cvvEncryptionParams.hmac,
+            unlockInput
+          );
+          return {
+            ...item,
+            expd: decryptedCardNumber,
+            decryptedCardNumber: decryptedCardNumber,
+            decryptedCvv: decryptedCvv,
+          };
+        }
+      );
+      setCreditCards(decryptedCreditCardsData);
+    } catch (error) {
+      console.error((error as { message: string }).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDelete = (id: string) => {
     console.log("id", id);
@@ -493,24 +556,34 @@ export function CreditCardsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Credit Cards</h1>
-          <p className="text-gray-400">
-            Securely store and manage your credit card information
-          </p>
+      {isLoading ? (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-pulse">
+          <div>
+            <div className="h-8 w-40 bg-gray-700 rounded mb-2" />
+            <div className="h-5 w-72 bg-gray-700 rounded" />
+          </div>
+          <div className="h-10 w-36 bg-gray-700 rounded-lg" />
         </div>
-        <Button
-          onClick={openAddModal}
-          className="bg-teal-600 hover:bg-teal-500 text-white"
-        >
-          <FiPlus className="h-5 w-5" />
-          Add Card
-        </Button>
-      </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Credit Cards</h1>
+            <p className="text-gray-400">
+              Securely store and manage your credit card information
+            </p>
+          </div>
+          <Button
+            onClick={openAddModal}
+            className="bg-teal-600 hover:bg-teal-500 text-white"
+          >
+            <FiPlus className="h-5 w-5" />
+            Add Card
+          </Button>
+        </div>
+      )}
 
       {/* Show direction if master password not set */}
-      {hasMasterPassword === false && (
+      {!isLoading && hasMasterPassword === false && (
         <div className="bg-yellow-900/60 border border-yellow-700 rounded-lg p-4 text-yellow-300 text-center mb-4">
           <strong>Set up your master password first!</strong>
           <div className="mt-2">
@@ -525,42 +598,53 @@ export function CreditCardsPage() {
       )}
 
       {/* Search and Filters */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search by card, bank, holder, or number"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="flex items-center gap-4">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </option>
-              ))}
-            </select>
+      {isLoading ? (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700 animate-pulse">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="h-11 w-full sm:flex-1 bg-gray-700 rounded-lg" />
+            <div className="h-11 w-full sm:w-48 bg-gray-700 rounded-lg" />
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search by card, bank, holder, or number"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Credit Cards Grid */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
-        {creditCards.length === 0 ? (
+        {isLoading ? (
+          <CreditCardsGridSkeleton count={pageSize} />
+        ) : creditCards.length === 0 ? (
           <div className="text-center py-12">
             <FiCreditCard className="h-16 w-16 text-gray-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-300 mb-2">
@@ -859,57 +943,29 @@ export function CreditCardsPage() {
           </form>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
 
-      <Dialog
-        open={isUnlockOpen}
-        onOpenChange={(open) =>
-          open ? setIsUnlockOpen(true) : handleUnlockCancel()
-        }
-      >
-        <DialogContent className="w-11/12 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FiLock className="h-5 w-5" />
-              Enter Master Password
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUnlockSubmit} className="space-y-4">
-            <div className="px-6 py-2">
-              <label className="block text-sm text-gray-300 mb-1">
-                Master Password
-              </label>
-              <input
-                type="password"
-                className="w-full rounded-md bg-gray-700 border border-gray-600 px-3 py-2 text-white outline-none focus:ring-2 focus:ring-teal-500"
-                placeholder="Enter master password"
-                value={unlockInput}
-                onChange={(e) => setUnlockInput(e.target.value)}
-                autoFocus
-              />
-              {unlockError && (
-                <p className="text-red-400 text-sm mt-1">{unlockError}</p>
-              )}
-            </div>
-            <div className="border-t border-gray-600 flex justify-end items-center gap-4 px-6 py-4">
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={isUnlocking}
-                onClick={handleUnlockCancel}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isUnlocking}
-                className="bg-teal-600 hover:bg-teal-500 text-white"
-              >
-                {isUnlocking ? "Unlocking..." : "Unlock"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+// Skeleton for credit card grid
+function CreditCardsGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse bg-gray-700/60 rounded-xl border border-gray-600 p-6 flex flex-col gap-4"
+        >
+          <div className="h-6 bg-gray-600/60 rounded w-2/3 mb-2" />
+          <div className="h-4 bg-gray-600/50 rounded w-1/2 mb-2" />
+          <div className="h-4 bg-gray-600/40 rounded w-1/3 mb-2" />
+          <div className="h-8 bg-gray-600/30 rounded w-full mb-2" />
+          <div className="flex gap-2 mt-4">
+            <div className="h-8 w-20 bg-gray-600/40 rounded" />
+            <div className="h-8 w-20 bg-gray-600/40 rounded" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
