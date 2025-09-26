@@ -8,7 +8,12 @@ import {
   getPasswords,
   updateAllPasswords,
 } from "./controllers/passwords.js";
-import { addCreditCard, getCreditCards } from "./controllers/credit-cards.js";
+import {
+  addCreditCard,
+  deleteCreditCard,
+  editCreditCard,
+  getCreditCards,
+} from "./controllers/credit-cards.js";
 
 const app = express();
 connectDB();
@@ -26,9 +31,12 @@ app.get("/api/v1/view-passwords/:userid", getPasswords);
 
 // credit card routes
 app.post("/api/v1/add-credit-card", addCreditCard);
+app.put("/api/v1/update-credit-card/:cardId", editCreditCard);
+app.delete("/api/v1/delete-credit-card/:cardId", deleteCreditCard);
 app.get("/api/v1/view-credit-cards/:userid", getCreditCards);
 
-app.post("/api/v1/update-passwords", updateAllPasswords);
+// master password change route
+app.post("/api/v1/change-master-password", updateAllPasswords);
 
 app.get("/", (req, res) => {
   return res.json({
