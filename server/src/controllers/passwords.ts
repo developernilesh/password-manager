@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import type { Request, Response } from "express";
 import { PasswordsModel } from "../models/passwords.js";
 
