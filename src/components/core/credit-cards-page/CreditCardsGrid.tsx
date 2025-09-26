@@ -25,7 +25,7 @@ export interface CreditCardRow {
   cardNoEncryptionParams: encryptionParams;
   decryptedCardNumber: string;
   cardholderName: string;
-  expiryDate: string; // MM/YY
+  expiry: string; // MM/YY
   encryptedCvv: string;
   cvvEncryptionParams: encryptionParams;
   decryptedCvv: string;
@@ -278,7 +278,7 @@ export function CreditCardsGrid({
                 </div>
                 <div>
                   <label className="text-xs text-teal-400">Expires</label>
-                  <p className="font-mono">{card.expiryDate}</p>
+                  <p className="font-mono">{card.expiry}</p>
                 </div>
               </div>
 
