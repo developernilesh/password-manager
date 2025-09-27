@@ -24,6 +24,40 @@ import {
   encryptDataWithCryptoJS,
 } from "@/lib/encryption-client";
 import { useUser } from "@clerk/nextjs";
+import { getErrorMessage } from "@/components/common/handle-error";
+
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  hmac: string;
+  version: string;
+}
+
+interface Password {
+  _id: string;
+  title: string;
+  username: string;
+  encryptedData: string;
+  encryptionParams: encryptionParams;
+  url: string;
+  category: string;
+  createdAt: string;
+}
+
+interface CreditCard {
+  _id: string;
+  cardName: string;
+  encryptedCardNumber: string;
+  cardNoEncryptionParams: encryptionParams;
+  cardholderName: string;
+  expiry: string; // MM/YY
+  encryptedCvv: string;
+  cvvEncryptionParams: encryptionParams;
+  bank: string;
+  category: string;
+  createdAt: string;
+}
 
 export function MasterPasswordSection() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -105,12 +139,8 @@ export function MasterPasswordSection() {
         setIsEditing(false);
       }
       setHasMasterPassword(true); // Update local state
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      setMessage({ type: "error", text: errorMessage });
+    } catch (error: unknown) {
+      setMessage({ type: "error", text: getErrorMessage(error) });
     } finally {
       setIsChangingMasterPassword(false);
     }
@@ -143,7 +173,7 @@ export function MasterPasswordSection() {
 
       // 3. Re-encrypting all passwords with the new master password
       const updatedPasswords = await Promise.all(
-        encryptedPasswords.map(async (password: any) => {
+        encryptedPasswords.map(async (password: Password) => {
           // Decrypt with old master password
           const decryptedPassword = decryptDataWithCryptoJS(
             password.encryptedData,
@@ -177,7 +207,7 @@ export function MasterPasswordSection() {
       const { data: encryptedCards } = cards.data;
 
       const updatedCards = await Promise.all(
-        encryptedCards.map(async (card: any) => {
+        encryptedCards.map(async (card: CreditCard) => {
           const decryptedCardNumber = decryptDataWithCryptoJS(
             card.encryptedCardNumber,
             card.cardNoEncryptionParams.iv,
@@ -244,12 +274,8 @@ export function MasterPasswordSection() {
           confirmPassword: "",
         });
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      setMessage({ type: "error", text: errorMessage });
+    } catch (error: unknown) {
+      setMessage({ type: "error", text: getErrorMessage(error) });
     } finally {
       setIsUpdating(false);
     }
