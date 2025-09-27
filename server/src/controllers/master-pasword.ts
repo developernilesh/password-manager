@@ -2,6 +2,28 @@ import type { Request, Response } from "express";
 import { PasswordsModel } from "../models/passwords.js";
 import { CreditCardsModel } from "../models/credit-cards.js";
 
+interface encryptionParams {
+  iv: string;
+  salt: string;
+  algorithm: string;
+  hmac: string;
+  version: string;
+}
+
+interface PasswordToUpdate {
+  _id: string;
+  encryptedData: string;
+  encryptionParams: encryptionParams;
+}
+
+interface CardToUpdate {
+  _id: string;
+  encryptedCardNumber: string;
+  cardNoEncryptionParams: encryptionParams;
+  encryptedCvv: string;
+  cvvEncryptionParams: encryptionParams;
+}
+
 export const handleMasterPasswordChange = async (
   req: Request,
   res: Response
@@ -17,13 +39,13 @@ export const handleMasterPasswordChange = async (
     }
 
     // Update each password in the database
-    const updateOperationsForPassword = updatedPasswords.map((pwd: any) =>
+    const updateOperationsForPassword = updatedPasswords.map((pwd: PasswordToUpdate) =>
       PasswordsModel.findByIdAndUpdate(pwd._id, {
         encryptedData: pwd.encryptedData,
         encryptionParams: pwd.encryptionParams,
       })
     );
-    const updateOperationsForCreditCard = updatedCards.map((card: any) =>
+    const updateOperationsForCreditCard = updatedCards.map((card: CardToUpdate) =>
       CreditCardsModel.findByIdAndUpdate(card._id, {
         encryptedCardNumber: card.encryptedCardNumber,
         cardNoEncryptionParams: card.cardNoEncryptionParams,
