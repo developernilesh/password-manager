@@ -40,7 +40,7 @@ interface CreditCard {
   cardNoEncryptionParams: encryptionParams;
   decryptedCardNumber: string;
   cardholderName: string;
-  expiryDate: string; // MM/YY
+  expiry: string; // MM/YY
   encryptedCvv: string;
   cvvEncryptionParams: encryptionParams;
   decryptedCvv: string;
@@ -278,7 +278,7 @@ export function CreditCardsPage() {
         message: "Card number must be 13–19 digits",
       })
       .refine((v) => luhnCheck(v), { message: "Card number is invalid" }),
-    expiryDate: z
+    expiry: z
       .string()
       .trim()
       .regex(/^(0[1-9]|1[0-2])\/(\d{2})$/, "Use MM/YY format")
@@ -336,7 +336,7 @@ export function CreditCardsPage() {
       bank: "",
       cardholderName: "",
       cardNumber: "",
-      expiryDate: "",
+      expiry: "",
       cvv: "",
       category: undefined as unknown as CardFormInput["category"],
     },
@@ -389,7 +389,7 @@ export function CreditCardsPage() {
 
   const handleExpiryChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formatted = formatExpiryForDisplay(e.target.value);
-    setValue("expiryDate", formatted, {
+    setValue("expiry", formatted, {
       shouldValidate: true,
       shouldDirty: true,
     });
@@ -413,7 +413,7 @@ export function CreditCardsPage() {
       bank: "",
       cardholderName: "",
       cardNumber: "",
-      expiryDate: "",
+      expiry: "",
       cvv: "",
       category: undefined as unknown as CardFormInput["category"],
     });
@@ -427,7 +427,7 @@ export function CreditCardsPage() {
       bank: card.bank,
       cardholderName: card.cardholderName,
       cardNumber: formatCardNumberForDisplay(card.decryptedCardNumber),
-      expiryDate: card.expiryDate,
+      expiry: card.expiry,
       cvv: card.decryptedCvv,
       category: card.category as CardFormInput["category"],
     });
@@ -460,7 +460,7 @@ export function CreditCardsPage() {
       cardName: values.cardName,
       bank: values.bank,
       cardholderName: values.cardholderName,
-      expiry: values.expiryDate,
+      expiry: values.expiry,
       category: values.category,
       encryptedCardNumber,
       cardNoEncryptionParams: {
@@ -481,11 +481,11 @@ export function CreditCardsPage() {
     };
     try {
       const endpoint = editingCard
-        ? `/update-password/${editingCard._id}`
+        ? `/update-credit-card/${editingCard._id}`
         : "/add-credit-card";
       const method = editingCard ? apiClient.put : apiClient.post;
 
-      const { data } = await apiClient.post("/add-credit-card", payload);
+      const { data } = await method(endpoint, payload);
 
       if (data.success) {
         toast.success((data as { message: string }).message);
@@ -514,7 +514,6 @@ export function CreditCardsPage() {
         `/view-credit-cards/${(user as { id: string }).id}`
       );
       const { data: encryptedCreditCardsData } = response.data;
-      console.log("encryptedCreditCardsData", encryptedCreditCardsData);
       const decryptedCreditCardsData = encryptedCreditCardsData.map(
         (item: any) => {
           const decryptedCardNumber = decryptDataWithCryptoJS(
@@ -547,11 +546,41 @@ export function CreditCardsPage() {
     }
   };
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
+    null
+  );
+
   const handleDelete = (id: string) => {
-    console.log("id", id);
+    setPasswordIdToDelete(id);
+    setDeleteConfirmOpen(true);
   };
 
-  // Removed local copy state; child grid manages its own copied state
+  const actuallyDeletePassword = async (id: string) => {
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    try {
+      const { data } = await apiClient.delete(`/delete-credit-card/${id}`, {
+        data: {
+          userid: (user as { id: string }).id,
+        },
+      });
+
+      if (data.success) {
+        toast.success((data as { message: string }).message);
+        handleGetCreditCardsInfo();
+        setIsModalOpen(false);
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMessage);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -643,7 +672,7 @@ export function CreditCardsPage() {
       {/* Credit Cards Grid */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
         {isLoading ? (
-          <CreditCardsGridSkeleton count={pageSize} />
+          <CreditCardsGridSkeleton count={3} />
         ) : creditCards.length === 0 ? (
           <div className="text-center py-12">
             <FiCreditCard className="h-16 w-16 text-gray-500 mx-auto mb-4" />
@@ -828,11 +857,11 @@ export function CreditCardsPage() {
                   inputMode="numeric"
                   autoComplete="cc-exp"
                   maxLength={5}
-                  {...register("expiryDate", { onChange: handleExpiryChange })}
+                  {...register("expiry", { onChange: handleExpiryChange })}
                 />
-                {errors.expiryDate && (
+                {errors.expiry && (
                   <p className="text-red-400 text-sm mt-1">
-                    {errors.expiryDate.message}
+                    {errors.expiry.message}
                   </p>
                 )}
               </div>
@@ -874,17 +903,25 @@ export function CreditCardsPage() {
 
             <DialogFooter>
               <div className="flex justify-end items-center gap-4">
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary">
-                    Cancel
-                  </Button>
-                </DialogClose>
+                {!isFormSubmitting && (
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                )}
                 <Button
                   type="submit"
                   className="bg-teal-600 hover:bg-teal-500 text-white"
                   disabled={isSubmitting}
                 >
-                  {editingCard ? "Save Changes" : "Add"}
+                  {editingCard
+                    ? isFormSubmitting
+                      ? "Saving..."
+                      : "Save Changes"
+                    : isFormSubmitting
+                    ? "Adding..."
+                    : "Add"}
                 </Button>
               </div>
             </DialogFooter>
@@ -941,6 +978,39 @@ export function CreditCardsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="w-11/12 max-w-md">
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 py-2 text-gray-300">
+            Do you really want to delete this password? This action cannot be
+            undone.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-500 text-white"
+              onClick={async () => {
+                if (passwordIdToDelete) {
+                  setDeleteConfirmOpen(false);
+                  await actuallyDeletePassword(passwordIdToDelete);
+                  setPasswordIdToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
