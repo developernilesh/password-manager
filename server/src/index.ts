@@ -45,6 +45,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.listen(4000, () => {
-  console.log("Server Started at Port 4000");
+app.listen(process.env.PORT, () => {
+  console.log(`Server Started at Port ${process.env.PORT}`);
 });
