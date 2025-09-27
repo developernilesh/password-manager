@@ -24,8 +24,9 @@ import {
 } from "@/lib/encryption-client";
 import { apiClient } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
+import { getErrorMessage } from "../common/handle-error";
 
-interface encryptionParams {
+interface EncryptionParams {
   iv: string;
   salt: string;
   algorithm: string;
@@ -33,16 +34,21 @@ interface encryptionParams {
   version: string;
 }
 
-interface Password {
+interface BasePassword {
   _id: string;
   title: string;
   username: string;
   encryptedData: string;
-  encryptionParams: encryptionParams;
-  decryptedPassword: string;
+  encryptionParams: EncryptionParams;
   url: string;
   category: string;
   createdAt: string;
+}
+
+interface EncryptedPassword extends BasePassword {}
+
+interface Password extends BasePassword {
+  decryptedPassword: string;
 }
 
 export function PasswordsPage() {
@@ -322,12 +328,8 @@ export function PasswordsPage() {
         handleGetPasswords();
         setIsModalOpen(false);
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsFormSubmitting(false);
     }
@@ -344,7 +346,7 @@ export function PasswordsPage() {
         `/view-passwords/${(user as { id: string }).id}`
       );
       const { data: encryptedPasswords } = response.data;
-      const decryptedPasswords = encryptedPasswords.map((item: any) => {
+      const decryptedPasswords = encryptedPasswords.map((item: EncryptedPassword) => {
         const decryptedPassword = decryptDataWithCryptoJS(
           item.encryptedData,
           item.encryptionParams.iv,
@@ -396,12 +398,8 @@ export function PasswordsPage() {
         handleGetPasswords();
         setIsModalOpen(false);
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -527,7 +525,7 @@ export function PasswordsPage() {
               copyToClipboard(text);
               return true;
             }}
-            onCopyPassword={(data: any) =>
+            onCopyPassword={(data: Password) =>
               requestUnlock({ type: "copy-password", value: data })
             }
             onEdit={openEditModal}
