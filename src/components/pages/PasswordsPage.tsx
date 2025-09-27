@@ -83,6 +83,7 @@ export function PasswordsPage() {
       try {
         const hash = await getMasterPasswordHash();
         setHasMasterPassword(!!hash);
+        if (!!hash) handleGetPasswords();
       } catch (error) {
         console.error(error);
       } finally {
@@ -90,7 +91,6 @@ export function PasswordsPage() {
       }
     }
     checkMasterPassword();
-    handleGetPasswords();
   }, []);
 
   const filteredPasswords = useMemo(() => {
