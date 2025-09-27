@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FiHome, FiLock, FiCreditCard, FiKey, FiSettings } from "react-icons/fi";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -42,7 +42,6 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useUser();
-  const [clickedPath, setClickedPath] = useState<string | null>(null);
 
   // const handleClick = (path: string) => {
   //   setClickedPath(path);

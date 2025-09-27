@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { FiCopy, FiRefreshCw, FiCheck, FiKey, FiSettings, FiShield } from "react-icons/fi";
+import {
+  FiCopy,
+  FiRefreshCw,
+  FiCheck,
+  FiSettings,
+  FiShield,
+} from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 
 export function PasswordGeneratorPage() {
@@ -21,11 +27,11 @@ export function PasswordGeneratorPage() {
     if (includeLowercase) charset += "abcdefghijklmnopqrstuvwxyz";
     if (includeNumbers) charset += "0123456789";
     if (includeSymbols) charset += "!@#$%^&*()_+-=[]{}|;:,.<>?";
-    
+
     if (excludeSimilar) {
       charset = charset.replace(/[il1Lo0O]/g, "");
     }
-    
+
     if (excludeAmbiguous) {
       charset = charset.replace(/[{}[\]\\/"'`~,;:.<>]/g, "");
     }
@@ -39,22 +45,30 @@ export function PasswordGeneratorPage() {
     for (let i = 0; i < passwordLength; i++) {
       password += charset.charAt(Math.floor(Math.random() * charset.length));
     }
-    
+
     setGeneratedPassword(password);
     setCopied(false);
   };
 
-  const generatePasswordWithSettings = (length: number, uppercase: boolean, lowercase: boolean, numbers: boolean, symbols: boolean, similar: boolean, ambiguous: boolean) => {
+  const generatePasswordWithSettings = (
+    length: number,
+    uppercase: boolean,
+    lowercase: boolean,
+    numbers: boolean,
+    symbols: boolean,
+    similar: boolean,
+    ambiguous: boolean
+  ) => {
     let charset = "";
     if (uppercase) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     if (lowercase) charset += "abcdefghijklmnopqrstuvwxyz";
     if (numbers) charset += "0123456789";
     if (symbols) charset += "!@#$%^&*()_+-=[]{}|;:,.<>?";
-    
+
     if (similar) {
       charset = charset.replace(/[il1Lo0O]/g, "");
     }
-    
+
     if (ambiguous) {
       charset = charset.replace(/[{}[\]\\/"'`~,;:.<>]/g, "");
     }
@@ -68,7 +82,7 @@ export function PasswordGeneratorPage() {
     for (let i = 0; i < length; i++) {
       password += charset.charAt(Math.floor(Math.random() * charset.length));
     }
-    
+
     setGeneratedPassword(password);
     setCopied(false);
   };
@@ -82,8 +96,9 @@ export function PasswordGeneratorPage() {
   };
 
   const getPasswordStrength = () => {
-    if (!generatedPassword) return { score: 0, label: "No Password", color: "text-gray-400" };
-    
+    if (!generatedPassword)
+      return { score: 0, label: "No Password", color: "text-gray-400" };
+
     let score = 0;
     if (generatedPassword.match(/[a-z]/)) score += 1;
     if (generatedPassword.match(/[A-Z]/)) score += 1;
@@ -105,7 +120,9 @@ export function PasswordGeneratorPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold mb-2">Password Generator</h1>
-        <p className="text-gray-400">Create strong, secure passwords with customizable options</p>
+        <p className="text-gray-400">
+          Create strong, secure passwords with customizable options
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -114,7 +131,7 @@ export function PasswordGeneratorPage() {
           {/* Generated Password Display */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-semibold mb-4">Generated Password</h2>
-            
+
             <div className="space-y-4">
               <div className="relative">
                 <input
@@ -130,7 +147,11 @@ export function PasswordGeneratorPage() {
                   size="icon"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
                 >
-                  {copied ? <FiCheck className="h-4 w-4 text-green-400" /> : <FiCopy className="h-4 w-4 text-gray-400" />}
+                  {copied ? (
+                    <FiCheck className="h-4 w-4 text-green-400" />
+                  ) : (
+                    <FiCopy className="h-4 w-4 text-gray-400" />
+                  )}
                 </Button>
               </div>
 
@@ -139,29 +160,28 @@ export function PasswordGeneratorPage() {
                 <span className="text-sm text-gray-400">Strength:</span>
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
-                    {strength.label === "No Password" ? null : 
-                      strength.label === "Weak" ? (
-                        <div className="w-3 h-2 rounded bg-red-400" />
-                      ) : strength.label === "Fair" ? (
-                        <>
-                          <div className="w-3 h-2 rounded bg-yellow-400" />
-                          <div className="w-3 h-2 rounded bg-yellow-400" />
-                        </>
-                      ) : strength.label === "Good" ? (
-                        <>
-                          <div className="w-3 h-2 rounded bg-blue-400" />
-                          <div className="w-3 h-2 rounded bg-blue-400" />
-                          <div className="w-3 h-2 rounded bg-blue-400" />
-                        </>
-                      ) : strength.label === "Strong" ? (
-                        <>
-                          <div className="w-3 h-2 rounded bg-green-400" />
-                          <div className="w-3 h-2 rounded bg-green-400" />
-                          <div className="w-3 h-2 rounded bg-green-400" />
-                          <div className="w-3 h-2 rounded bg-green-400" />
-                        </>
-                      ) : null
-                    }
+                    {strength.label ===
+                    "No Password" ? null : strength.label === "Weak" ? (
+                      <div className="w-3 h-2 rounded bg-red-400" />
+                    ) : strength.label === "Fair" ? (
+                      <>
+                        <div className="w-3 h-2 rounded bg-yellow-400" />
+                        <div className="w-3 h-2 rounded bg-yellow-400" />
+                      </>
+                    ) : strength.label === "Good" ? (
+                      <>
+                        <div className="w-3 h-2 rounded bg-blue-400" />
+                        <div className="w-3 h-2 rounded bg-blue-400" />
+                        <div className="w-3 h-2 rounded bg-blue-400" />
+                      </>
+                    ) : strength.label === "Strong" ? (
+                      <>
+                        <div className="w-3 h-2 rounded bg-green-400" />
+                        <div className="w-3 h-2 rounded bg-green-400" />
+                        <div className="w-3 h-2 rounded bg-green-400" />
+                        <div className="w-3 h-2 rounded bg-green-400" />
+                      </>
+                    ) : null}
                   </div>
                   <span className={`text-sm font-medium ${strength.color}`}>
                     {strength.label}
@@ -193,7 +213,15 @@ export function PasswordGeneratorPage() {
                   setIncludeSymbols(false);
                   setExcludeSimilar(false);
                   setExcludeAmbiguous(false);
-                  generatePasswordWithSettings(8, true, true, true, false, false, false);
+                  generatePasswordWithSettings(
+                    8,
+                    true,
+                    true,
+                    true,
+                    false,
+                    false,
+                    false
+                  );
                 }}
                 variant="default"
                 className="h-auto p-3 flex-col items-start justify-start bg-blue-600 hover:bg-blue-500 text-white"
@@ -201,7 +229,7 @@ export function PasswordGeneratorPage() {
                 <div className="text-sm font-medium">Simple</div>
                 <div className="text-xs text-blue-200">8 chars, no symbols</div>
               </Button>
-               
+
               <Button
                 onClick={() => {
                   setPasswordLength(12);
@@ -211,15 +239,25 @@ export function PasswordGeneratorPage() {
                   setIncludeSymbols(true);
                   setExcludeSimilar(false);
                   setExcludeAmbiguous(false);
-                  generatePasswordWithSettings(12, true, true, true, true, false, false);
+                  generatePasswordWithSettings(
+                    12,
+                    true,
+                    true,
+                    true,
+                    true,
+                    false,
+                    false
+                  );
                 }}
                 variant="default"
                 className="h-auto p-3 flex-col items-start justify-start bg-green-600 hover:bg-green-500 text-white"
               >
                 <div className="text-sm font-medium">Standard</div>
-                <div className="text-xs text-green-200">12 chars, all types</div>
+                <div className="text-xs text-green-200">
+                  12 chars, all types
+                </div>
               </Button>
-               
+
               <Button
                 onClick={() => {
                   setPasswordLength(20);
@@ -229,7 +267,15 @@ export function PasswordGeneratorPage() {
                   setIncludeSymbols(true);
                   setExcludeSimilar(true);
                   setExcludeAmbiguous(false);
-                  generatePasswordWithSettings(20, true, true, true, true, true, false);
+                  generatePasswordWithSettings(
+                    20,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    false
+                  );
                 }}
                 variant="default"
                 className="h-auto p-3 flex-col items-start justify-start bg-purple-600 hover:bg-purple-500 text-white"
@@ -237,7 +283,7 @@ export function PasswordGeneratorPage() {
                 <div className="text-sm font-medium">Strong</div>
                 <div className="text-xs text-purple-200">20 chars, complex</div>
               </Button>
-               
+
               <Button
                 onClick={() => {
                   setPasswordLength(32);
@@ -247,7 +293,15 @@ export function PasswordGeneratorPage() {
                   setIncludeSymbols(true);
                   setExcludeSimilar(true);
                   setExcludeAmbiguous(true);
-                  generatePasswordWithSettings(32, true, true, true, true, true, true);
+                  generatePasswordWithSettings(
+                    32,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  );
                 }}
                 variant="default"
                 className="h-auto p-3 flex-col items-start justify-start bg-red-600 hover:bg-red-500 text-white"
@@ -266,7 +320,7 @@ export function PasswordGeneratorPage() {
               <FiSettings className="h-5 w-5" />
               <span>Generator Settings</span>
             </h2>
-            
+
             <div className="space-y-6">
               {/* Password Length */}
               <div>
@@ -289,7 +343,9 @@ export function PasswordGeneratorPage() {
 
               {/* Character Types */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-gray-300">Character Types</h3>
+                <h3 className="text-sm font-medium text-gray-300">
+                  Character Types
+                </h3>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-3">
                     <input
@@ -332,7 +388,9 @@ export function PasswordGeneratorPage() {
 
               {/* Exclusions */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-gray-300">Exclusions</h3>
+                <h3 className="text-sm font-medium text-gray-300">
+                  Exclusions
+                </h3>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-3">
                     <input
@@ -341,7 +399,9 @@ export function PasswordGeneratorPage() {
                       onChange={(e) => setExcludeSimilar(e.target.checked)}
                       className="w-4 h-4 text-teal-500 bg-gray-700 border-gray-600 rounded focus:ring-teal-500"
                     />
-                    <span className="text-sm">Exclude similar characters (i, l, 1, L, o, 0, O)</span>
+                    <span className="text-sm">
+                      Exclude similar characters (i, l, 1, L, o, 0, O)
+                    </span>
                   </label>
                   <label className="flex items-center space-x-3">
                     <input
@@ -350,7 +410,10 @@ export function PasswordGeneratorPage() {
                       onChange={(e) => setExcludeAmbiguous(e.target.checked)}
                       className="w-4 h-4 text-teal-500 bg-gray-700 border-gray-600 rounded focus:ring-teal-500"
                     />
-                  <span className="text-sm">Exclude ambiguous characters (&#123; &#125; &#91; &#93; &#92; &#47; &quot; &apos; &#96; ~ , ; : . &#60; &#62;)</span>
+                    <span className="text-sm">
+                      Exclude ambiguous characters (&#123; &#125; &#91; &#93;
+                      &#92; &#47; &quot; &apos; &#96; ~ , ; : . &#60; &#62;)
+                    </span>
                   </label>
                 </div>
               </div>
@@ -370,7 +433,9 @@ export function PasswordGeneratorPage() {
               </div>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p>Include a mix of uppercase, lowercase, numbers, and symbols</p>
+                <p>
+                  Include a mix of uppercase, lowercase, numbers, and symbols
+                </p>
               </div>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
@@ -390,4 +455,4 @@ export function PasswordGeneratorPage() {
       </div>
     </div>
   );
-} 
+}

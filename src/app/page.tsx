@@ -4,7 +4,7 @@ import LoadingSpinner from "@/components/layout/LoadingSpinner";
 import { LandingPage } from "@/components/pages/LandingPage";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function HomePage() {
   const { isSignedIn, isLoaded } = useAuth();

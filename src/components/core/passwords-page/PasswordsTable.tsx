@@ -153,7 +153,7 @@ export function PasswordsTable({
         </thead>
         <tbody className="[&_tr:last-child]:border-0 divide-y divide-gray-700">
           {data && data.length > 0 ? (
-            data.map((row, index) => {
+            data.map((row) => {
               const isVisible = !!visibleById[row._id];
               return (
                 <tr
