@@ -124,8 +124,8 @@ export function MasterPasswordSection() {
     setIsUpdating(true);
     try {
       // 1. Get all passwords encrypted with the old master password
-      const response = await apiClient.get(`/view-passwords/${userId}`);
-      const { data: encryptedPasswords } = response.data;
+      const passwords = await apiClient.get(`/view-passwords/${userId}`);
+      const { data: encryptedPasswords } = passwords.data;
 
       // 2. Verifying old master password by trying to decrypt one password
       try {
@@ -173,10 +173,66 @@ export function MasterPasswordSection() {
         })
       );
 
+      const cards = await apiClient.get(`/view-credit-cards/${userId}`);
+      const { data: encryptedCards } = cards.data;
+
+      const updatedCards = await Promise.all(
+        encryptedCards.map(async (card: any) => {
+          const decryptedCardNumber = decryptDataWithCryptoJS(
+            card.encryptedCardNumber,
+            card.cardNoEncryptionParams.iv,
+            card.cardNoEncryptionParams.salt,
+            card.cardNoEncryptionParams.hmac,
+            oldMasterPassword
+          );
+          const decryptedCvv = decryptDataWithCryptoJS(
+            card.encryptedCvv,
+            card.cvvEncryptionParams.iv,
+            card.cvvEncryptionParams.salt,
+            card.cvvEncryptionParams.hmac,
+            oldMasterPassword
+          );
+          const {
+            encryptedData: encryptedCardNumber,
+            iv: cardNoIv,
+            salt: cardNoSalt,
+            hmac: cardNoHmac,
+          } = encryptDataWithCryptoJS(decryptedCardNumber, newMasterPassword);
+
+          const {
+            encryptedData: encryptedCvv,
+            iv: cvvIv,
+            salt: cvvSalt,
+            hmac: cvvHmac,
+          } = encryptDataWithCryptoJS(decryptedCvv, newMasterPassword);
+
+          return {
+            _id: card._id,
+            encryptedCardNumber,
+            cardNoEncryptionParams: {
+              iv: cardNoIv,
+              salt: cardNoSalt,
+              hmac: cardNoHmac,
+              algorithm: "AES-256-CBC",
+              version: "1.0",
+            },
+            encryptedCvv,
+            cvvEncryptionParams: {
+              iv: cvvIv,
+              salt: cvvSalt,
+              hmac: cvvHmac,
+              algorithm: "AES-256-CBC",
+              version: "1.0",
+            },
+          };
+        })
+      );
+      // return;
       // 4. Send updated passwords to the server
-      const { data } = await apiClient.post("/update-passwords", {
+      const { data } = await apiClient.post("/change-master-password", {
         userId: (user as { id: string }).id,
         updatedPasswords,
+        updatedCards,
       });
 
       if (data.success) {
