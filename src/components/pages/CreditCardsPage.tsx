@@ -24,8 +24,9 @@ import {
 } from "@/lib/encryption-client";
 import { useUser } from "@clerk/nextjs";
 import { apiClient } from "@/lib/api-client";
+import { getErrorMessage } from "../common/handle-error";
 
-interface encryptionParams {
+interface EncryptionParams {
   iv: string;
   salt: string;
   algorithm: string;
@@ -33,20 +34,25 @@ interface encryptionParams {
   version: string;
 }
 
-interface CreditCard {
+interface BaseCreditCard {
   _id: string;
   cardName: string;
   encryptedCardNumber: string;
-  cardNoEncryptionParams: encryptionParams;
-  decryptedCardNumber: string;
+  cardNoEncryptionParams: EncryptionParams;
   cardholderName: string;
-  expiry: string; // MM/YY
+  expiry: string;
   encryptedCvv: string;
-  cvvEncryptionParams: encryptionParams;
-  decryptedCvv: string;
+  cvvEncryptionParams: EncryptionParams;
   bank: string;
   category: string;
   createdAt: string;
+}
+
+interface EncryptedCreditCard extends BaseCreditCard {}
+
+interface CreditCard extends BaseCreditCard {
+  decryptedCardNumber: string;
+  decryptedCvv: string;
 }
 
 export function CreditCardsPage() {
@@ -492,12 +498,8 @@ export function CreditCardsPage() {
         handleGetCreditCardsInfo();
         setIsModalOpen(false);
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsFormSubmitting(false);
     }
@@ -515,7 +517,7 @@ export function CreditCardsPage() {
       );
       const { data: encryptedCreditCardsData } = response.data;
       const decryptedCreditCardsData = encryptedCreditCardsData.map(
-        (item: any) => {
+        (item: EncryptedCreditCard) => {
           const decryptedCardNumber = decryptDataWithCryptoJS(
             item.encryptedCardNumber,
             item.cardNoEncryptionParams.iv,
@@ -573,12 +575,8 @@ export function CreditCardsPage() {
         handleGetCreditCardsInfo();
         setIsModalOpen(false);
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong!";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     }
   };
 
