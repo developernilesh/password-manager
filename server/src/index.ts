@@ -6,7 +6,6 @@ import {
   deletePassword,
   editPasswords,
   getPasswords,
-  updateAllPasswords,
 } from "./controllers/passwords.js";
 import {
   addCreditCard,
@@ -14,6 +13,7 @@ import {
   editCreditCard,
   getCreditCards,
 } from "./controllers/credit-cards.js";
+import { handleMasterPasswordChange } from "./controllers/master-pasword.js";
 
 const app = express();
 connectDB();
@@ -36,7 +36,7 @@ app.delete("/api/v1/delete-credit-card/:cardId", deleteCreditCard);
 app.get("/api/v1/view-credit-cards/:userid", getCreditCards);
 
 // master password change route
-app.post("/api/v1/change-master-password", updateAllPasswords);
+app.post("/api/v1/change-master-password", handleMasterPasswordChange);
 
 app.get("/", (req, res) => {
   return res.json({
