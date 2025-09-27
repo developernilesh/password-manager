@@ -239,38 +239,3 @@ export const getPasswords = async (req: Request, res: Response) => {
     });
   }
 };
-
-export const updateAllPasswords = async (req: Request, res: Response) => {
-  try {
-    const { userId, updatedPasswords } = req.body;
-
-    if (!userId || !updatedPasswords) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID and updated passwords are required",
-      });
-    }
-
-    // Update each password in the database
-    const updateOperations = updatedPasswords.map((pwd: any) =>
-      PasswordsModel.findByIdAndUpdate(pwd._id, {
-        encryptedData: pwd.encryptedData,
-        encryptionParams: pwd.encryptionParams,
-      })
-    );
-
-    await Promise.all(updateOperations);
-
-    res.status(200).json({
-      success: true,
-      message: "Passwords updated successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Something went wrong: ${
-        (error as { message: string }).message
-      }`,
-    });
-  }
-};

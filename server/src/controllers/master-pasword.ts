@@ -23,7 +23,6 @@ export const handleMasterPasswordChange = async (
         encryptionParams: pwd.encryptionParams,
       })
     );
-
     const updateOperationsForCreditCard = updatedCards.map((card: any) =>
       CreditCardsModel.findByIdAndUpdate(card._id, {
         encryptedCardNumber: card.encryptedCardNumber,
