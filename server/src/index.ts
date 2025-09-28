@@ -1,19 +1,19 @@
 import express from "express";
 import cors from "cors";
-import connectDB from "./config/database";
+import connectDB from "./config/database.js";
 import {
   addPassword,
   deletePassword,
   editPasswords,
   getPasswords,
-} from "./controllers/passwords";
+} from "./controllers/passwords.js";
 import {
   addCreditCard,
   deleteCreditCard,
   editCreditCard,
   getCreditCards,
-} from "./controllers/credit-cards";
-import { handleMasterPasswordChange } from "./controllers/master-pasword";
+} from "./controllers/credit-cards.js";
+import { handleMasterPasswordChange } from "./controllers/master-pasword.js";
 
 const app = express();
 connectDB();
@@ -37,14 +37,12 @@ app.get("/api/v1/view-credit-cards/:userid", getCreditCards);
 
 // master password change route
 app.post("/api/v1/change-master-password", handleMasterPasswordChange);
-
 app.get("/", (req, res) => {
   return res.json({
     success: true,
     message: "Your server is up and running....",
   });
 });
-
 app.listen(process.env.PORT, () => {
   console.log(`Server Started at Port No: ${process.env.PORT}`);
 });
