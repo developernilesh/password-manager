@@ -474,6 +474,7 @@ export function MasterPasswordSection() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
+
                 <div className="relative">
                   <Input
                     id="confirmPassword"

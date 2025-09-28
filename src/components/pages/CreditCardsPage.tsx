@@ -34,7 +34,7 @@ interface EncryptionParams {
   version: string;
 }
 
-interface BaseCreditCard {
+interface EncryptedCreditCard {
   _id: string;
   cardName: string;
   encryptedCardNumber: string;
@@ -48,9 +48,7 @@ interface BaseCreditCard {
   createdAt: string;
 }
 
-interface EncryptedCreditCard extends BaseCreditCard {}
-
-interface CreditCard extends BaseCreditCard {
+interface CreditCard extends EncryptedCreditCard {
   decryptedCardNumber: string;
   decryptedCvv: string;
 }

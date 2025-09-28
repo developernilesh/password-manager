@@ -103,8 +103,9 @@ export function PasswordsTable({
   };
 
   useEffect(() => {
+    const timeouts = copyTimeoutsRef.current;
     return () => {
-      Object.values(copyTimeoutsRef.current).forEach((t) => clearTimeout(t));
+      Object.values(timeouts).forEach((t) => clearTimeout(t));
     };
   }, []);
 

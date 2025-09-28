@@ -34,7 +34,7 @@ interface EncryptionParams {
   version: string;
 }
 
-interface BasePassword {
+interface EncryptedPassword {
   _id: string;
   title: string;
   username: string;
@@ -45,9 +45,7 @@ interface BasePassword {
   createdAt: string;
 }
 
-interface EncryptedPassword extends BasePassword {}
-
-interface Password extends BasePassword {
+interface Password extends EncryptedPassword {
   decryptedPassword: string;
 }
 

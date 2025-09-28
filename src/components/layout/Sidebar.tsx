@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { FiHome, FiLock, FiCreditCard, FiKey, FiSettings } from "react-icons/fi";
 import { UserButton, useUser } from "@clerk/nextjs";
 

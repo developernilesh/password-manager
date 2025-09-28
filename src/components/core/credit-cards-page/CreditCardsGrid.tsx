@@ -81,8 +81,9 @@ export function CreditCardsGrid({
   };
 
   useEffect(() => {
+    const timeouts = copyTimeoutsRef.current;
     return () => {
-      Object.values(copyTimeoutsRef.current).forEach((t) => clearTimeout(t));
+      Object.values(timeouts).forEach((t) => clearTimeout(t));
     };
   }, []);
 
@@ -202,7 +203,11 @@ export function CreditCardsGrid({
                   </button>
                   <button
                     onClick={() =>
-                      handleCopy(`${card._id}-number`, card.decryptedCardNumber, "number")
+                      handleCopy(
+                        `${card._id}-number`,
+                        card.decryptedCardNumber,
+                        "number"
+                      )
                     }
                     className="p-1 hover:bg-gray-600 rounded transition-colors"
                     aria-label={
