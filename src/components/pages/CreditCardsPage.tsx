@@ -411,6 +411,10 @@ export function CreditCardsPage() {
       );
       return;
     }
+    if (!unlockInput) {
+      setIsUnlockOpen(true);
+      return;
+    }
     setEditingCard(null);
     reset({
       cardName: "",
