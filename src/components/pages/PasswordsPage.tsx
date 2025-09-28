@@ -289,11 +289,12 @@ export function PasswordsPage() {
   const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
 
   const onSubmit: SubmitHandler<PasswordFormOutput> = async (values) => {
+    setIsFormSubmitting(true);
     if (!unlockInput) {
       setIsUnlockOpen(true);
+      setIsFormSubmitting(false);
       return;
     }
-    setIsFormSubmitting(true);
     const { encryptedData, iv, salt, hmac } = encryptDataWithCryptoJS(
       values.password,
       unlockInput
