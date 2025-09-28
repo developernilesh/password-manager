@@ -1,19 +1,19 @@
 import express from "express";
 import cors from "cors";
-import connectDB from "./config/database.js";
+import connectDB from "./config/database";
 import {
   addPassword,
   deletePassword,
   editPasswords,
   getPasswords,
-} from "./controllers/passwords.js";
+} from "./controllers/passwords";
 import {
   addCreditCard,
   deleteCreditCard,
   editCreditCard,
   getCreditCards,
-} from "./controllers/credit-cards.js";
-import { handleMasterPasswordChange } from "./controllers/master-pasword.js";
+} from "./controllers/credit-cards";
+import { handleMasterPasswordChange } from "./controllers/master-pasword";
 
 const app = express();
 connectDB();
