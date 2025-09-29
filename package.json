@@ -6,9 +6,8 @@
     "dev": "next dev",
     "both": "concurrently \"npm run server\" \"npm run frontend\"",
     "server": "cd server && npm run dev",
-    "serverbuild": "cd server && npm run build",
     "frontend": "cd src && npm run dev",
-    "build": "npm run serverbuild && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "cd server && npm install"
