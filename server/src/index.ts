@@ -104,7 +104,7 @@ app.get("/", (req, res) => {
 
 // For local development: Start server if not in Vercel environment
 if (process.env.VERCEL !== '1') {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Server Started at Port No: ${PORT}`);
   });
