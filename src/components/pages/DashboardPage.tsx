@@ -17,18 +17,23 @@ import { useUser } from "@clerk/nextjs";
 export function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [passwords, setPasswords] = useState<number>(0);
+  const [creditCards, setCreditCards] = useState<number>(0);
   const { user } = useUser();
 
   useEffect(() => {
     const getPasswordsData = async () => {
       setIsLoading(true);
       try {
-        const response = await apiClient.get(
+        const response1 = await apiClient.get(
           `/view-passwords/${(user as { id: string }).id}`
         );
-        const { data } = response.data;
-        console.log(data);
-        setPasswords(data.length);
+        const { data: passwords } = response1.data;
+        setPasswords(passwords.length);
+        const response2 = await apiClient.get(
+          `/view-credit-cards/${(user as { id: string }).id}`
+        );
+        const { data: cards } = response2.data;
+        setCreditCards(cards.length);
       } catch (error) {
         console.error((error as { message: string }).message);
       } finally {
@@ -49,59 +54,78 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
-        >
-          <div className="flex items-center space-x-3">
-            <FiKey className="h-8 w-8 text-teal-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Total Passwords</p>
-              <p className="text-2xl font-bold">{passwords}</p>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700 animate-pulse"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 rounded-full bg-gray-700" />
+                <div>
+                  <div className="h-4 w-24 bg-gray-700 rounded mb-2" />
+                  <div className="h-6 w-16 bg-gray-700 rounded" />
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
+          >
+            <div className="flex items-center space-x-3">
+              <FiKey className="h-8 w-8 text-teal-400" />
+              <div>
+                <p className="text-gray-400 text-sm">Total Passwords</p>
+                <p className="text-2xl font-bold">{passwords}</p>
+              </div>
+            </div>
+          </motion.div>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
-        >
-          <div className="flex items-center space-x-3">
-            <FiShield className="h-8 w-8 text-green-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Security Score</p>
-              <p className="text-2xl font-bold">100%</p>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
+          >
+            <div className="flex items-center space-x-3">
+              <FiShield className="h-8 w-8 text-green-400" />
+              <div>
+                <p className="text-gray-400 text-sm">Security Score</p>
+                <p className="text-2xl font-bold">100%</p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
-        >
-          <div className="flex items-center space-x-3">
-            <FiSettings className="h-8 w-8 text-blue-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Last Sync</p>
-              <p className="text-2xl font-bold">Now</p>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
+          >
+            <div className="flex items-center space-x-3">
+              <FiSettings className="h-8 w-8 text-blue-400" />
+              <div>
+                <p className="text-gray-400 text-sm">Last Sync</p>
+                <p className="text-2xl font-bold">Now</p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
-        >
-          <div className="flex items-center space-x-3">
-            <FiBarChart className="h-8 w-8 text-purple-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Credit Cards</p>
-              <p className="text-2xl font-bold">0</p>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700"
+          >
+            <div className="flex items-center space-x-3">
+              <FiBarChart className="h-8 w-8 text-purple-400" />
+              <div>
+                <p className="text-gray-400 text-sm">Credit Cards</p>
+                <p className="text-2xl font-bold">{creditCards}</p>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Master Password Section */}
       <MasterPasswordSection />
