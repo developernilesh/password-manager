@@ -443,11 +443,11 @@ export function CreditCardsPage() {
   };
 
   const onSubmit: SubmitHandler<CardFormOutput> = async (values) => {
+    setIsFormSubmitting(true);
     if (!unlockInput) {
       setIsUnlockOpen(true);
       return;
     }
-    setIsFormSubmitting(true);
     const normalizedNumber = values.cardNumber; // already digits-only from schema transform
     const {
       encryptedData: encryptedCardNumber,
@@ -560,7 +560,10 @@ export function CreditCardsPage() {
     setDeleteConfirmOpen(true);
   };
 
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
   const actuallyDeletePassword = async (id: string) => {
+    setIsDeleting(true);
     if (!unlockInput) {
       setIsUnlockOpen(true);
       return;
@@ -574,11 +577,15 @@ export function CreditCardsPage() {
 
       if (data.success) {
         toast.success((data as { message: string }).message);
-        handleGetCreditCardsInfo();
+        setDeleteConfirmOpen(false);
+        setPasswordIdToDelete(null);
         setIsModalOpen(false);
+        handleGetCreditCardsInfo();
       }
     } catch (error: unknown) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -992,23 +999,24 @@ export function CreditCardsPage() {
             undone.
           </div>
           <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setDeleteConfirmOpen(false)}
-            >
-              Cancel
-            </Button>
+            {!isDeleting && (
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteConfirmOpen(false)}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               className="bg-red-600 hover:bg-red-500 text-white"
               onClick={async () => {
                 if (passwordIdToDelete) {
-                  setDeleteConfirmOpen(false);
                   await actuallyDeletePassword(passwordIdToDelete);
-                  setPasswordIdToDelete(null);
                 }
               }}
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
