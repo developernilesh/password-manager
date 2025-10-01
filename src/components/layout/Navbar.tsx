@@ -106,17 +106,28 @@ export function Navbar() {
           <div className="md:hidden flex items-center gap-2">
             <div className="flex gap-4 items-center">
               <SignedOut>
-                <SignInButton mode="modal">
-                  <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
-                    Sign In
-                  </Button>
-                </SignInButton>
-                <div className="hidden sm:block">
-                  <SignUpButton mode="modal">
-                    <Button className="bg-teal-500 hover:bg-teal-600 text-white cursor-pointer">
-                      Sign Up
+                <Link href="/sign-in">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button className="bg-transparent hover:bg-transparent text-teal-400 cursor-pointer border border-teal-400 rounded-lg">
+                      <span className="relative z-10">Sign In</span>
                     </Button>
-                  </SignUpButton>
+                  </motion.div>
+                </Link>
+                <div className="hidden sm:block">
+                  <Link href="/sign-up">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button className="bg-teal-500 hover:bg-teal-600 text-white relative overflow-hidden group cursor-pointer">
+                        <span className="relative z-10">Sign Up</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      </Button>
+                    </motion.div>
+                  </Link>
                 </div>
               </SignedOut>
               <SignedIn>
