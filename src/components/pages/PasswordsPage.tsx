@@ -345,19 +345,21 @@ export function PasswordsPage() {
         `/view-passwords/${(user as { id: string }).id}`
       );
       const { data: encryptedPasswords } = response.data;
-      const decryptedPasswords = encryptedPasswords.map((item: EncryptedPassword) => {
-        const decryptedPassword = decryptDataWithCryptoJS(
-          item.encryptedData,
-          item.encryptionParams.iv,
-          item.encryptionParams.salt,
-          item.encryptionParams.hmac,
-          unlockInput
-        );
-        return {
-          ...item,
-          decryptedPassword: decryptedPassword,
-        };
-      });
+      const decryptedPasswords = encryptedPasswords.map(
+        (item: EncryptedPassword) => {
+          const decryptedPassword = decryptDataWithCryptoJS(
+            item.encryptedData,
+            item.encryptionParams.iv,
+            item.encryptionParams.salt,
+            item.encryptionParams.hmac,
+            unlockInput
+          );
+          return {
+            ...item,
+            decryptedPassword: decryptedPassword,
+          };
+        }
+      );
       setPasswords(decryptedPasswords);
     } catch (error) {
       console.error((error as { message: string }).message);
@@ -370,7 +372,7 @@ export function PasswordsPage() {
     if (unlockInput && isUnlocked) handleGetPasswords();
   }, [unlockInput, isUnlocked]);
 
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
   const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
     null
   );
@@ -380,7 +382,10 @@ export function PasswordsPage() {
     setDeleteConfirmOpen(true);
   };
 
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
   const actuallyDeletePassword = async (id: string) => {
+    setIsDeleting(true);
     if (!unlockInput) {
       setIsUnlockOpen(true);
       return;
@@ -394,11 +399,15 @@ export function PasswordsPage() {
 
       if (data.success) {
         toast.success((data as { message: string }).message);
-        handleGetPasswords();
+        setPasswordIdToDelete(null);
+        setDeleteConfirmOpen(false);
         setIsModalOpen(false);
+        handleGetPasswords();
       }
     } catch (error: unknown) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -787,23 +796,24 @@ export function PasswordsPage() {
             undone.
           </div>
           <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setDeleteConfirmOpen(false)}
-            >
-              Cancel
-            </Button>
+            {!isDeleting && (
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteConfirmOpen(false)}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               className="bg-red-600 hover:bg-red-500 text-white"
               onClick={async () => {
                 if (passwordIdToDelete) {
-                  setDeleteConfirmOpen(false);
                   await actuallyDeletePassword(passwordIdToDelete);
-                  setPasswordIdToDelete(null);
                 }
               }}
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
