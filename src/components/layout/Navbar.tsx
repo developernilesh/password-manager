@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FiLock, FiMenu } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
@@ -72,7 +73,7 @@ export function Navbar() {
                   Pricing
                 </a>
                 <div className="flex gap-4 items-center">
-                  <SignInButton mode="modal">
+                  <Link href="/sign-in">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -81,8 +82,8 @@ export function Navbar() {
                         <span className="relative z-10">Sign In</span>
                       </Button>
                     </motion.div>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
+                  </Link>
+                  <Link href="/sign-up">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -92,7 +93,7 @@ export function Navbar() {
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </Button>
                     </motion.div>
-                  </SignUpButton>
+                  </Link>
                 </div>
               </div>
             </SignedOut>
