@@ -2,7 +2,7 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, ComponentType } from "react";
 import { FiCopy, FiCheck, FiUser, FiKey, FiArrowLeft } from "react-icons/fi";
 import Link from "next/link";
 
@@ -33,7 +33,7 @@ export default function Page() {
     label: string;
     value: string;
     field: string;
-    icon: any;
+    icon: ComponentType<{ className?: string }>;
   }) => (
     <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
       <div className="flex items-center gap-3 flex-1">
