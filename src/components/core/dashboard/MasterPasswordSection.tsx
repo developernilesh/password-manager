@@ -72,7 +72,8 @@ export function MasterPasswordSection() {
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [hasMasterPassword, setHasMasterPassword] = useState(false); // TODO: Get this from backend - for now showing "not set" scenario
+  const [hasMasterPassword, setHasMasterPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(true);
 
   const { user } = useUser();
 
@@ -303,6 +304,15 @@ export function MasterPasswordSection() {
     checkMasterPassword();
   }, []);
 
+  useEffect(() => {
+    if (
+      user?.emailAddresses?.[0]?.emailAddress &&
+      user.emailAddresses[0].emailAddress === "tester.account@yopmail.com"
+    ) {
+      setShowChangePassword(false);
+    }
+  }, [user]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -335,12 +345,16 @@ export function MasterPasswordSection() {
               {!isEditing && (
                 <>
                   {hasMasterPassword ? (
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      className="bg-teal-600 hover:bg-teal-500 text-white"
-                    >
-                      Change Password
-                    </Button>
+                    showChangePassword ? (
+                      <Button
+                        onClick={() => setIsEditing(true)}
+                        className="bg-teal-600 hover:bg-teal-500 text-white"
+                      >
+                        Change Password
+                      </Button>
+                    ) : (
+                      <div className="text-amber-500 px-2 py-1 bg-amber-400/10 border border-amber-500 rounded-lg font-semibold animate-pulse">Changing Master Password has been turned off for this test account!</div>
+                    )
                   ) : (
                     <Button
                       onClick={() => setIsEditing(true)}
