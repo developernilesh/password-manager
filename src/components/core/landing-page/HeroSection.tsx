@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FiShield } from "react-icons/fi";
+import Link from "next/link";
 
 export function HeroSection() {
   const { scrollYProgress } = useScroll();
@@ -52,18 +53,20 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.8 }}
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                size="lg"
-                className="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 text-lg relative overflow-hidden group cursor-pointer"
-              >
-                <span className="relative z-10">Get Started Free</span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "0%" }}
-                  transition={{ duration: 0.3 }}
-                />
-              </Button>
+              <Link href="/sign-in">
+                <Button
+                  size="lg"
+                  className="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 text-lg relative overflow-hidden group cursor-pointer"
+                >
+                  <span className="relative z-10">Get Started Free</span>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "0%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Button>
+              </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
