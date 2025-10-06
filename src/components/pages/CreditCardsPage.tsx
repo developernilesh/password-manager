@@ -966,6 +966,10 @@ export function CreditCardsPage() {
               {unlockError && (
                 <p className="text-red-400 text-sm mt-1">{unlockError}</p>
               )}
+              <div className="flex justify-end pt-2 gap-2">
+                <span className="italic text-gray-400">Testing Master Password:</span>
+                <span className="font-semibold text-teal-500">12345678</span>
+              </div>
             </div>
             <div className="border-t border-gray-600 flex justify-end items-center gap-4 px-6 py-4">
               <Button
