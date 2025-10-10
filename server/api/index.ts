@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import connectDB from "../dist/config/database.js";
 import {
   addPassword,
