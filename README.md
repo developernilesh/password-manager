@@ -1,76 +1,103 @@
 # SecureVault - Password Manager
 
-A modern, secure password management application built with Next.js, TypeScript, and ClerkJS for authentication.
+A modern, secure password management application built with Next.js, TypeScript, and ClerkJS for authentication. Features zero-knowledge encryption, secure password storage, and credit card management.
 
-## Features
+## Key Features
 
-- 🔐 **Secure Authentication** - Powered by ClerkJS
-- 🎨 **Modern UI** - Beautiful, responsive design with Framer Motion animations
-- 📱 **Mobile Responsive** - Works perfectly on all devices
-- 🚀 **Fast Performance** - Built with Next.js 15 and React 19
-- 🎯 **Smart Routing** - Automatic redirection based on authentication status
+- 🔐 **Zero-Knowledge Encryption** - Client-side encryption using CryptoJS/AES-256
+- 🎨 **Modern UI** - Responsive design with Tailwind CSS and Framer Motion animations 
+- 🔑 **Password Management** - Store, generate, and organize passwords securely
+- 💳 **Credit Card Storage** - Encrypted storage for credit card information
+- 🔒 **Master Password** - Additional encryption layer for sensitive data
+- 🎯 **Role-based Access** - Secure authentication powered by ClerkJS
+- 📱 **Mobile Responsive** - Optimized for all devices with mobile navigation
 
 ## Project Structure
 
 ```
 src/
+├── actions/
+│ └── actions.ts             # Server actions for master password management
 ├── app/
-│   ├── dashboard/
-│   │   └── page.tsx          # Dashboard route for authenticated users
-│   ├── layout.tsx            # Root layout with ClerkJS provider
-│   └── page.tsx              # Home page with authentication routing
+│ ├── user/                  # Protected user routes
+│ │ ├── dashboard/
+│ │ ├── passwords/
+│ │ ├── credit-cards/
+│ │ ├── password-generator/
+│ │ └── settings/
+│ ├── sign-in/               # Authentication routes
+│ ├── sign-up/
+│ └── layout.tsx             # Root layout with ClerkJS provider
 ├── components/
-│   ├── layout/
-│   │   ├── Footer.tsx        # Footer component
-│   │   └── Navbar.tsx        # Navigation bar with auth buttons
-│   ├── pages/
-│   │   ├── Dashboard.tsx     # Dashboard component for authenticated users
-│   │   └── LandingPage.tsx   # Landing page component for unauthenticated users
-│   ├── sections/
-│   │   ├── CTASection.tsx    # Call-to-action section
-│   │   ├── FeaturesSection.tsx
-│   │   ├── HeroSection.tsx
-│   │   ├── HowItWorksSection.tsx
-│   │   ├── PricingSection.tsx
-│   │   └── SecuritySection.tsx
-│   └── ui/
-│       ├── button.tsx        # Reusable button component
-│       └── card.tsx          # Reusable card component
+│ ├── core/
+│ │ ├── dashboard/           # Dashboard-specific components
+│ │ └── landing-page/        # Landing page sections
+│ ├── layout/                # Layout components (Navbar, Sidebar, etc.)
+│ ├── pages/                 # Main page components
+│ └── ui/                    # Reusable UI components
 ├── lib/
-│   └── utils.ts              # Utility functions
-└── middleware.ts             # ClerkJS middleware configuration
+│ ├── api-client.ts          # Axios instance for API calls
+│ ├── encryption-client.ts   # Encryption utilities
+│ └── utils.ts               # Helper functions
+└── middleware.ts            # ClerkJS auth middleware
 ```
 
-## Authentication Flow
+## Key Sections
 
-1. **Unauthenticated Users** (`/`):
-   - See the landing page with all marketing sections
-   - Can sign up or sign in using ClerkJS modals
-   - Navbar shows "Sign In" and "Sign Up" buttons
+1. **Authentication**
+   - Secure sign-in/sign-up powered by ClerkJS
+   - Protected routes and API endpoints
+   - Master password management for additional security
 
-2. **Authenticated Users** (`/`):
-   - Automatically redirected to `/dashboard`
-   - See the dashboard with password management features
-   - Navbar shows "Dashboard" link and UserButton
+2. **Password Management**
+   - CRUD operations for passwords
+   - Client-side encryption/decryption
+   - Password strength evaluation
+   - Custom password generator with configurable settings
 
-3. **Dashboard Route** (`/dashboard`):
-   - Protected route that requires authentication
-   - Unauthenticated users are redirected to home
-   - Shows password management interface
+3. **Credit Card Management**
+   - Secure storage of credit card details
+   - End-to-end encryption
+   - Card number validation (Luhn algorithm)
+   - Category organization
 
-## Getting Started
+4. **User Dashboard**
+   - Overview of stored items
+   - Quick actions for common tasks
+   - Security tips and recommendations
+   - Settings management
+
+
+## Technologies Used
+
+- **Frontend**: Next.js 14, TypeScript, TailwindCSS, Framer Motion
+- **Backend**: Express.js, MongoDB, Mongoose
+- **Authentication**: ClerkJS
+- **Encryption**: CryptoJS (AES-256)
+- **State Management**: React Hooks
+- **Form Handling**: React Hook Form, Zod
+- **UI Components**: Radix UI primitives
+- **Icons**: React Icons, Lucide Icons
+
+## Development
 
 1. **Install dependencies:**
    ```bash
    npm install
+   cd server && npm install
    ```
 
-2. **Set up ClerkJS:**
-   - Create a ClerkJS account
-   - Add your environment variables to `.env.local`:
+2. **Environment Setup:**
+   - Create `.env.local` in root:
    ```
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
-   CLERK_SECRET_KEY=your_secret_key
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_key
+   CLERK_SECRET_KEY=your_secret
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
+   ```
+   - Create `server/.env`:
+   ```
+   PORT=4000
+   MONGODB_URI=your_mongodb_uri
    ```
 
 3. **Run the development server:**
@@ -78,33 +105,11 @@ src/
    npm run dev
    ```
 
-4. **Open your browser:**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## Security Features
 
-## Technologies Used
-
-- **Next.js 15** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Framer Motion** - Animations
-- **ClerkJS** - Authentication
-- **React Icons** - Icon library
-- **Radix UI** - UI primitives
-
-## Development
-
-- **Landing Page**: `src/components/pages/LandingPage.tsx`
-- **Dashboard**: `src/components/pages/Dashboard.tsx`
-- **Authentication**: Handled by ClerkJS in `src/app/layout.tsx`
-- **Routing**: `src/app/page.tsx` and `src/app/dashboard/page.tsx`
-
-## Folder Structure Improvements
-
-The project has been reorganized with:
-
-- **`src/components/pages/`** - Page-level components
-- **`src/components/sections/`** - Landing page sections
-- **`src/components/layout/`** - Layout components
-- **`src/components/ui/`** - Reusable UI components
-
-This structure provides better separation of concerns and makes the codebase more maintainable.
+- Zero-knowledge encryption architecture
+- Client-side AES-256 encryption
+- Secure master password hashing
+- Protected API endpoints
+- Role-based access control
+- Automatic session management
