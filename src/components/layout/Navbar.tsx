@@ -6,13 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FiLock, FiMenu } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -66,12 +60,12 @@ export function Navbar() {
                 >
                   Security
                 </a>
-                <a
+                {/* <a
                   href="#pricing"
                   className="hover:text-teal-400 transition-colors"
                 >
                   Pricing
-                </a>
+                </a> */}
                 <div className="flex gap-4 items-center">
                   <Link href="/sign-in">
                     <motion.div
