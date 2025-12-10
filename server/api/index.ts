@@ -23,10 +23,7 @@ connectDB();
 app.use(express.json());
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true
-}));
+app.use(cors());
 
 // Passwords routes
 app.post("/api/v1/add-password", addPassword);

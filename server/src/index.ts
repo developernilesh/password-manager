@@ -23,12 +23,7 @@ connectDB();
 app.use(express.json());
 
 // CORS configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true,
-  })
-);
+app.use(cors());
 
 // Passwords routes
 app.post("/api/v1/add-password", addPassword);
@@ -54,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 // For local development: Start server if not in Vercel environment
-if (process.env.VERCEL !== '1') {
+if (process.env.VERCEL !== "1") {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Server Started at Port No: ${PORT}`);
