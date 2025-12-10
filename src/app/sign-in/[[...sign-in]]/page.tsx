@@ -11,7 +11,7 @@ export default function Page() {
 
   const testCredentials = {
     email: "tester.account@yopmail.com",
-    password: "Tester@001",
+    password: "Test.pass@1046",
   };
 
   const handleCopy = async (text: string, field: string) => {
