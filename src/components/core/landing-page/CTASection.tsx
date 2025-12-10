@@ -1,11 +1,19 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { FiArrowRight, FiCheckCircle, FiLock, FiShield, FiUsers } from "react-icons/fi"
-import { FaWandMagicSparkles } from "react-icons/fa6"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  FiArrowRight,
+  FiCheckCircle,
+  FiLock,
+  FiShield,
+  FiUsers,
+} from "react-icons/fi";
+import { FaWandMagicSparkles } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 export function CTASection() {
+  const router = useRouter();
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Animated Background */}
@@ -19,7 +27,11 @@ export function CTASection() {
           y: [0, -20, 0],
           rotate: [0, 5, 0],
         }}
-        transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+        transition={{
+          duration: 6,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
         className="absolute top-10 left-10 w-20 h-20 bg-teal-500/20 rounded-full blur-xl"
       />
       <motion.div
@@ -27,7 +39,11 @@ export function CTASection() {
           y: [0, 20, 0],
           rotate: [0, -5, 0],
         }}
-        transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+        transition={{
+          duration: 8,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
         className="absolute bottom-10 right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-xl"
       />
       <motion.div
@@ -58,7 +74,9 @@ export function CTASection() {
             >
               <div className="flex items-center space-x-2 bg-teal-500/10 px-4 py-2 rounded-full border border-teal-500/20">
                 <FaWandMagicSparkles className="h-5 w-5 text-teal-400" />
-                <span className="text-teal-400 font-medium">Join 50,000+ Users</span>
+                <span className="text-teal-400 font-medium">
+                  Join 50,000+ Users
+                </span>
               </div>
             </motion.div>
 
@@ -70,7 +88,9 @@ export function CTASection() {
               className="text-3xl md:text-5xl font-bold mb-6 text-white leading-tight"
             >
               Ready to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">Secure</span>{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">
+                Secure
+              </span>{" "}
               Your Digital Life?
             </motion.h2>
 
@@ -81,8 +101,9 @@ export function CTASection() {
               viewport={{ once: true }}
               className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0"
             >
-              Stop worrying about password security. Start your free trial today and experience the peace of mind that
-              comes with military-grade protection.
+              Stop worrying about password security. Start your free trial today
+              and experience the peace of mind that comes with military-grade
+              protection.
             </motion.p>
 
             {/* Benefits List */}
@@ -117,16 +138,24 @@ export function CTASection() {
               viewport={{ once: true }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="relative group">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative group"
+              >
                 <Button
                   size="lg"
+                  onClick={() => router.push("/sign-in")}
                   className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white px-8 py-4 text-lg font-semibold relative overflow-hidden group border-0"
                 >
                   <span className="relative z-10 flex items-center">
                     Start Free Trial
                     <motion.div
                       animate={{ x: [0, 5, 0] }}
-                      transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Number.POSITIVE_INFINITY,
+                      }}
                     >
                       <FiArrowRight className="ml-2 h-5 w-5" />
                     </motion.div>
@@ -142,7 +171,7 @@ export function CTASection() {
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-500 rounded-lg blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   size="lg"
                   variant="outline"
@@ -150,7 +179,7 @@ export function CTASection() {
                 >
                   Watch Demo
                 </Button>
-              </motion.div>
+              </motion.div> */}
             </motion.div>
           </motion.div>
 
@@ -168,7 +197,11 @@ export function CTASection() {
                 animate={{
                   y: [0, -10, 0],
                 }}
-                transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                transition={{
+                  duration: 4,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
                 className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl border border-gray-700 shadow-2xl relative overflow-hidden"
               >
                 {/* Animated border */}
@@ -184,26 +217,35 @@ export function CTASection() {
                         "0 0 20px rgba(20, 184, 166, 0.3)",
                       ],
                     }}
-                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                    transition={{
+                      duration: 2,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
                     className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center"
                   >
                     <FiLock className="h-10 w-10 text-white" />
                   </motion.div>
 
-                  <h3 className="text-2xl font-bold mb-2 text-white">Bank-Level Security</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-white">
+                    Bank-Level Security
+                  </h3>
                   <p className="text-gray-400 mb-6">
-                    Your passwords are protected with AES-256 encryption - the same standard used by banks and
-                    governments.
+                    Your passwords are protected with AES-256 encryption - the
+                    same standard used by banks and governments.
                   </p>
 
                   {/* Security Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-teal-400">256-bit</div>
+                      <div className="text-2xl font-bold text-teal-400">
+                        256-bit
+                      </div>
                       <div className="text-sm text-gray-400">Encryption</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">99.9%</div>
+                      <div className="text-2xl font-bold text-blue-400">
+                        99.9%
+                      </div>
                       <div className="text-sm text-gray-400">Uptime</div>
                     </div>
                   </div>
@@ -216,7 +258,11 @@ export function CTASection() {
                   y: [0, -15, 0],
                   rotate: [0, 5, 0],
                 }}
-                transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                transition={{
+                  duration: 5,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
                 className="absolute -top-4 -left-4 w-16 h-16 bg-teal-500/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-teal-500/30"
               >
                 <FiShield className="h-8 w-8 text-teal-400" />
@@ -227,7 +273,11 @@ export function CTASection() {
                   y: [0, 15, 0],
                   rotate: [0, -5, 0],
                 }}
-                transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                transition={{
+                  duration: 6,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
                 className="absolute -bottom-4 -right-4 w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-blue-500/30"
               >
                 <FiUsers className="h-8 w-8 text-blue-400" />
@@ -238,7 +288,11 @@ export function CTASection() {
                   scale: [1, 1.1, 1],
                   rotate: [0, 10, 0],
                 }}
-                transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                transition={{
+                  duration: 7,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
                 className="absolute top-1/2 -right-8 w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-purple-500/30"
               >
                 <FaWandMagicSparkles className="h-6 w-6 text-purple-400" />
@@ -270,5 +324,5 @@ export function CTASection() {
         </motion.div> */}
       </div>
     </section>
-  )
+  );
 }

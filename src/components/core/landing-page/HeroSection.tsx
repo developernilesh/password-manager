@@ -68,14 +68,14 @@ export function HeroSection() {
                 </Button>
               </Link>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
                 className="border border-gray-600 hover:border-teal-400 text-white hover:text-teal-400 px-8 py-3 text-lg bg-transparent hover:bg-transparent relative cursor-pointer"
               >
                 Learn More
               </Button>
-            </motion.div>
+            </motion.div> */}
           </motion.div>
         </motion.div>
 

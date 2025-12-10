@@ -16,9 +16,9 @@ export function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
-        <HowItWorksSection />
+        {/* <HowItWorksSection /> */}
         <SecuritySection />
-        <PricingSection />
+        {/* <PricingSection /> */}
         <CTASection />
       </main>
       <Footer />
